@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:C:/Users/Public/mock_test_app_dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("STUDENT")
+  isGlobalAdmin Boolean @default(false)
+  stream    String?  // PCM, PCB, PCMB, etc.
+  results   Result[]
+  reviews   Review[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  text          String
+  options       String   // JSON stringified array of options
+  correctAnswer Int      // Index of correct option
+  subject       String
+  chapter       String?  
+  level         String?  
+  imageUrl      String?  
+  year          Int?     
+  isPYQ         Boolean  @default(false) 
+  tests         Test[]   @relation("TestQuestions")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Test {
+  id              String     @id @default(cuid())
+  title           String
+  description     String
+  duration        Int        
+  type            String     @default("MOCK") 
+  isCustom        Boolean    @default(false)
+  userId          String?    
+  correctPoints   Int        @default(4)  
+  negativePoints  Int        @default(1)  
+  subjectMarks    String?    
+  startTime       DateTime?  
+  endTime         DateTime?  
+  isLocked       Boolean    @default(false) 
+  isAlwaysAvailable Boolean @default(true) 
+  questions       Question[] @relation("TestQuestions")
+  results         Result[]
+  reviews         Review[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Result {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  test           Test     @relation(fields: [testId], references: [id])
+  testId         String
+  score          Int
+  spentTime      Int      // In seconds
+  wrongQuestions String?  // JSON stringified array of question IDs
+  subjectStats   String?  // JSON stringified subject-wise score breakdown
+  timePerQuestion String? // JSON string mapping question indices to seconds spent
+  completedAt    DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  content   String
+  rating    Int?
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  test      Test     @relation(fields: [testId], references: [id])
+  testId    String
+  createdAt DateTime @default(now())
+}
