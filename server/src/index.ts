@@ -28,11 +28,36 @@ if ((process.env.JWT_SECRET || '').length < 32) {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const defaultAllowedOrigins = [
+    'http://localhost:3000',
+    'https://examprep-showcase.vercel.app',
+];
+
+const allowedOrigins = () => {
+    const origins = [
+        process.env.CORS_ORIGIN,
+        process.env.CORS_ALLOWED_ORIGINS,
+        ...defaultAllowedOrigins,
+    ];
+
+    return new Set(
+        origins
+            .flatMap(origin => (origin || '').split(','))
+            .map(origin => origin.trim())
+            .filter(Boolean)
+    );
+};
 
 // Middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins().has(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true
 }));
 app.use(express.json({ limit: '1mb' }));

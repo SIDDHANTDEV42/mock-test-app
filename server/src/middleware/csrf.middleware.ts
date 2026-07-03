@@ -1,14 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
 
 const unsafeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const defaultAllowedOrigins = [
+    'http://localhost:3000',
+    'https://examprep-showcase.vercel.app',
+];
 
 const allowedOrigins = () => {
-    const origins = [process.env.CORS_ORIGIN || 'http://localhost:3000'];
-    const extra = process.env.CORS_ALLOWED_ORIGINS;
-    if (extra) {
-        origins.push(...extra.split(',').map(origin => origin.trim()).filter(Boolean));
-    }
-    return new Set(origins);
+    const origins = [
+        process.env.CORS_ORIGIN,
+        process.env.CORS_ALLOWED_ORIGINS,
+        ...defaultAllowedOrigins,
+    ];
+
+    return new Set(
+        origins
+            .flatMap(origin => (origin || '').split(','))
+            .map(origin => origin.trim())
+            .filter(Boolean)
+    );
 };
 
 export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
