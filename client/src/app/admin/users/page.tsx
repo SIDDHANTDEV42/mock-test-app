@@ -62,9 +62,9 @@ export default function AdminUsers() {
     };
 
     return (
-        <div className="p-8 pb-32">
-            <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-8 text-white shadow-2xl relative">
-                <div className="relative z-10 flex justify-between items-center">
+        <div className="p-4 sm:p-6 lg:p-8 pb-32">
+            <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-5 sm:p-8 text-white shadow-2xl relative">
+                <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
                         <p className="mt-2 text-slate-400">Monitor student performance and account details.</p>
@@ -138,15 +138,15 @@ export default function AdminUsers() {
                 {/* User Details & Stats */}
                 <div className="lg:col-span-2 space-y-8">
                     {selectedUser ? (
-                        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-5 sm:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             {/* Profile Header */}
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-slate-100">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-20 h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-indigo-200">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 min-w-0">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-lg shadow-indigo-200 shrink-0">
                                         {selectedUser.name?.[0]?.toUpperCase() || '?'}
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold text-slate-900">{selectedUser.name}</h3>
+                                        <h3 className="text-2xl font-bold text-slate-900 break-words">{selectedUser.name}</h3>
                                         <div className="flex flex-wrap gap-4 mt-2">
                                             <span className="flex items-center gap-1 text-sm text-slate-500">
                                                 <Mail className="w-4 h-4" /> {selectedUser.email}
@@ -178,12 +178,12 @@ export default function AdminUsers() {
                             </div>
 
                             {/* Credentials Section */}
-                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                            <div className="p-5 sm:p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
                                 <h4 className="font-bold text-slate-900 text-sm uppercase tracking-widest">Account Credentials</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email</label>
-                                        <div className="p-3 bg-white rounded-xl border border-slate-200 font-mono text-sm text-slate-700 select-all">
+                                        <div className="p-3 bg-white rounded-xl border border-slate-200 font-mono text-sm text-slate-700 select-all break-all">
                                             {selectedUser.email}
                                         </div>
                                     </div>
@@ -279,7 +279,7 @@ export default function AdminUsers() {
                             </div>
                         </div>
                     ) : (
-                        <div className="h-[600px] bg-white rounded-2xl shadow-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                        <div className="min-h-[420px] lg:h-[600px] bg-white rounded-2xl shadow-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 p-5 sm:p-8 text-center">
                             <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-4">
                                 <UserIcon className="w-10 h-10" />
                             </div>

@@ -82,9 +82,9 @@ export default function EnhancedDashboard() {
                     </div>
                 </section>
 
-                <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
+                <section className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-100 mb-8 min-w-0">
                     <h2 className="text-2xl font-bold mb-6">Subject Performance (%)</h2>
-                    <div className="h-64">
+                        <div className="h-64 min-w-0">
                         {stats?.subjectPerformance && stats.subjectPerformance.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={stats.subjectPerformance} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -100,7 +100,7 @@ export default function EnhancedDashboard() {
                     </div>
                 </section>
 
-                <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8 overflow-hidden relative group">
+                <section className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-100 mb-8 overflow-hidden relative group">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold">Academic Announcements</h2>
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
@@ -149,7 +149,7 @@ export default function EnhancedDashboard() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+                    <div className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
                         <div className="flex justify-between items-center">
                             <h2 className="text-2xl font-bold">Recent Activity</h2>
                             <Link href="/dashboard/results" className="text-sm font-bold text-blue-600 hover:underline">View All</Link>

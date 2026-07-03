@@ -10,14 +10,30 @@ export const createQuestionSchema = z.object({
     imageUrl: z.string().optional(),
     year: z.number().optional(),
     isPYQ: z.boolean().optional().default(false),
+}).superRefine((data, ctx) => {
+    if (data.correctAnswer >= data.options.length) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['correctAnswer'],
+            message: 'Correct answer must point to one of the provided options',
+        });
+    }
 });
 
 export const bulkCreateQuestionsSchema = z.object({
-    questions: z.array(z.any()),
+    questions: z.union([z.array(z.any()), z.string()]),
     isCSV: z.boolean().optional().default(false),
     globalIsPYQ: z.boolean().optional(),
     globalYear: z.number().optional(),
     globalLevel: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if (typeof data.questions === 'string' && !data.isCSV) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['questions'],
+            message: 'CSV text is only accepted when isCSV is true',
+        });
+    }
 });
 
 export type CreateQuestionInput = z.infer<typeof createQuestionSchema>;

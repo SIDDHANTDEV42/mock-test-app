@@ -5,11 +5,10 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from 'next/link';
-import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeOff, GraduationCap } from "lucide-react";
 
 export default function LoginPage() {
-    const { login, googleLogin } = useAuth();
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +29,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex bg-[#050510] overflow-hidden">
+        <div className="min-h-screen flex bg-[#050510] overflow-x-hidden overflow-y-auto">
             {/* Left Decorative Panel — hidden on mobile */}
             <div className="hidden lg:flex lg:w-[45%] relative items-center justify-center">
                 {/* Animated background blobs */}
@@ -77,20 +76,20 @@ export default function LoginPage() {
             </div>
 
             {/* Right Login Form Panel */}
-            <div className="w-full lg:w-[55%] flex items-center justify-center p-6 sm:p-8">
-                <div className="w-full max-w-md space-y-8">
+            <div className="w-full lg:w-[55%] flex min-w-0 items-center justify-center overflow-hidden p-4 sm:p-8 py-8">
+                <div className="w-full max-w-[calc(100vw-2rem)] sm:max-w-md min-w-0 space-y-6">
                     {/* Mobile-only logo */}
-                    <div className="lg:hidden flex items-center gap-3 mb-4">
+                    <div className="lg:hidden flex items-center gap-3 mb-4 min-w-0">
                         <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
                             <GraduationCap className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xl font-black tracking-tighter text-white uppercase">
+                        <span className="text-xl font-black tracking-tighter text-white uppercase truncate">
                             EXAM<span className="text-indigo-400">PREP</span>
                         </span>
                     </div>
 
                     {/* Card */}
-                    <div className="backdrop-blur-2xl bg-white/[0.03] border border-white/10 p-8 sm:p-10 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
+                    <div className="w-full min-w-0 overflow-hidden backdrop-blur-2xl bg-white/[0.03] border border-white/10 p-5 sm:p-10 rounded-2xl sm:rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
                         <div className="text-center mb-8">
                             <h2 className="text-3xl font-black text-white tracking-tight mb-2">Sign In</h2>
                             <p className="text-slate-500 text-sm font-medium">Enter your credentials to continue</p>
@@ -116,10 +115,11 @@ export default function LoginPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between items-center mx-2">
+                                <div className="flex justify-between items-center gap-3 mx-2">
                                     <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
-                                    <Link href="/auth/forgot-password" className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
-                                        Forgot Password?
+                                    <Link href="/auth/forgot-password" className="shrink-0 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+                                        <span className="sm:hidden">Forgot?</span>
+                                        <span className="hidden sm:inline">Forgot Password?</span>
                                     </Link>
                                 </div>
                                 <div className="relative">
@@ -154,35 +154,45 @@ export default function LoginPage() {
                                 ) : "Sign In"}
                             </Button>
 
-                            {/* Divider */}
-                            <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-white/10" />
+                            <div className="mt-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-4 space-y-3">
+                                <div>
+                                    <p className="text-[11px] font-black uppercase tracking-widest text-indigo-300">Portfolio demo access</p>
+                                    <p className="mt-1 text-xs font-semibold text-slate-400">Use these accounts to explore the full student and admin experience.</p>
                                 </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-[#0a0a14] px-3 text-slate-600 font-bold tracking-widest">or</span>
+                                <div className="grid min-w-0 gap-2 text-[11px] font-mono text-slate-300">
+                                    <div className="rounded-xl bg-black/20 p-3 break-all">
+                                        <span className="text-indigo-300">Admin:</span> demo.admin@siddhant.dev / DemoPass123!
+                                    </div>
+                                    <div className="rounded-xl bg-black/20 p-3 break-all">
+                                        <span className="text-indigo-300">Student:</span> demo.student@siddhant.dev / DemoPass123!
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full border-white/10 text-slate-300 hover:text-white hover:bg-white/5 bg-transparent"
+                                        onClick={() => {
+                                            setEmail("demo.admin@siddhant.dev");
+                                            setPassword("DemoPass123!");
+                                        }}
+                                    >
+                                        Fill Admin
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full border-white/10 text-slate-300 hover:text-white hover:bg-white/5 bg-transparent"
+                                        onClick={() => {
+                                            setEmail("demo.student@siddhant.dev");
+                                            setPassword("DemoPass123!");
+                                        }}
+                                    >
+                                        Fill Student
+                                    </Button>
                                 </div>
                             </div>
 
-                            {/* Google Login */}
-                            <div className="flex justify-center">
-                                <GoogleLogin 
-                                    onSuccess={(credentialResponse) => {
-                                        if (credentialResponse.credential) {
-                                            googleLogin(credentialResponse.credential).catch((err: any) => {
-                                                setError(err.response?.data?.error || "Google login failed.");
-                                            });
-                                        }
-                                    }}
-                                    onError={() => {
-                                        setError('Google login failed. Please try again.');
-                                    }}
-                                    theme="filled_black"
-                                    shape="pill"
-                                    size="large"
-                                    width="100"
-                                />
-                            </div>
                         </form>
 
                         <div className="mt-8 text-center">

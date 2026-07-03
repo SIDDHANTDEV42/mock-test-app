@@ -27,13 +27,8 @@ export const createCustomTestSchema = z.object({
 });
 
 export const submitResultSchema = z.object({
-    score: z.number(),
-    spentTime: z.number(),
-    wrongQuestions: z.array(z.string()).optional(),
-    subjectStats: z.record(z.string(), z.object({
-        correct: z.number(),
-        total: z.number(),
-    })).optional(),
+    answers: z.record(z.string(), z.number().int().min(0)),
+    spentTime: z.number().int().min(0),
     timePerQuestion: z.record(z.string(), z.number()).optional(),
 });
 

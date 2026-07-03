@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: examprep-showcase-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run render-build
+    startCommand: npm run deploy:start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: none
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

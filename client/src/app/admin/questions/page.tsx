@@ -94,12 +94,12 @@ export default function ManageQuestions() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
+            <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center bg-white p-4 rounded-xl shadow-sm border">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 uppercase tracking-tight">Question Bank</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 uppercase tracking-tight">Question Bank</h1>
                     <p className="text-slate-500 text-sm mt-1 pl-4">Manage and organize your academic questions.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     {selectedIds.length > 0 && (
                         <Button variant="destructive" onClick={() => handleDelete(selectedIds)}>
                             Delete Selected ({selectedIds.length})
@@ -118,7 +118,7 @@ export default function ManageQuestions() {
             </div>
 
             {showBulk && (
-                <div className="p-6 bg-white rounded-xl shadow-sm border space-y-4">
+                <div className="p-5 sm:p-6 bg-white rounded-xl shadow-sm border space-y-4">
                     <h3 className="font-bold">Bulk upload via CSV</h3>
                     
                     <div className="bg-emerald-50 p-4 border border-emerald-100 rounded-xl space-y-4">
@@ -127,7 +127,7 @@ export default function ManageQuestions() {
                              <label htmlFor="bulkIsPYQ" className="font-bold text-emerald-800">Mark all uploaded questions as PYQs</label>
                         </div>
                         {bulkConfig.isPYQ && (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                  <div>
                                       <label className="block text-xs font-bold text-emerald-700 mb-1">Global Year (Optional)</label>
                                       <input type="number" className="w-full p-2 rounded border border-emerald-200" placeholder="e.g. 2024" value={bulkConfig.year} onChange={e => setBulkConfig({...bulkConfig, year: e.target.value})} />
@@ -157,7 +157,7 @@ export default function ManageQuestions() {
             )}
 
             {showForm && (
-                <form onSubmit={handleSubmit} className="p-6 bg-white rounded-xl shadow-sm border space-y-4">
+                <form onSubmit={handleSubmit} className="p-5 sm:p-6 bg-white rounded-xl shadow-sm border space-y-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">Question Text</label>
                         <textarea 
@@ -167,7 +167,7 @@ export default function ManageQuestions() {
                             required
                         />
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Subject</label>
                             <select 
@@ -202,7 +202,7 @@ export default function ManageQuestions() {
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">Mark Correct Answer</label>
                             <div className="grid grid-cols-4 gap-2">
@@ -274,14 +274,14 @@ export default function ManageQuestions() {
                     <div 
                         key={q.id} 
                         onClick={() => toggleSelect(q.id)}
-                        className={`group p-6 bg-white rounded-2xl border-2 transition-all flex justify-between items-start cursor-pointer ${selectedIds.includes(q.id) ? 'border-indigo-600 bg-indigo-50 shadow-indigo-100 shadow-xl' : 'border-slate-100 hover:border-indigo-200'}`}
+                        className={`group p-5 sm:p-6 bg-white rounded-2xl border-2 transition-all flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start cursor-pointer ${selectedIds.includes(q.id) ? 'border-indigo-600 bg-indigo-50 shadow-indigo-100 shadow-xl' : 'border-slate-100 hover:border-indigo-200'}`}
                     >
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 min-w-0">
                             <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${selectedIds.includes(q.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 group-hover:border-indigo-400'}`}>
                                 {selectedIds.includes(q.id) && <div className="w-2 h-2 bg-white rounded-sm" />}
                             </div>
                             <div className="space-y-3">
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
                                         {q.subject}
                                     </span>
@@ -301,14 +301,14 @@ export default function ManageQuestions() {
                                         </span>
                                     )}
                                 </div>
-                                <h3 className="font-bold text-slate-900 leading-snug">{q.text}</h3>
-                                <div className="grid grid-cols-2 gap-x-12 gap-y-2">
+                                <h3 className="font-bold text-slate-900 leading-snug break-words">{q.text}</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 lg:gap-x-12 gap-y-2">
                                     {q.options.map((opt: string, i: number) => (
-                                        <div key={i} className={`flex items-center gap-2 text-sm ${i === q.correctAnswer ? 'text-emerald-600 font-bold' : 'text-slate-500'}`}>
+                                        <div key={i} className={`flex items-center gap-2 text-sm min-w-0 ${i === q.correctAnswer ? 'text-emerald-600 font-bold' : 'text-slate-500'}`}>
                                             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] border ${i === q.correctAnswer ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-50 border-slate-100'}`}>
                                                 {String.fromCharCode(65 + i)}
                                             </span>
-                                            {opt}
+                                            <span className="break-words">{opt}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -325,7 +325,7 @@ export default function ManageQuestions() {
                     </div>
                 ))}
                 {questions.length === 0 && !showForm && (
-                    <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-20 text-center">
+                    <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-10 sm:p-20 text-center">
                         <p className="text-slate-400 font-medium">No questions found in this bank.</p>
                         <Button variant="link" onClick={() => setShowForm(true)} className="text-indigo-600">Start by adding one manually</Button>
                     </div>

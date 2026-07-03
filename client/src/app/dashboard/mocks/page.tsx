@@ -24,12 +24,12 @@ export default function MockTestsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 academic-bg p-8">
+        <div className="min-h-screen bg-slate-50 academic-bg p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
-                <div className="flex justify-between items-end">
+                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
                     <div>
                         <Link href="/dashboard" className="text-sm font-bold text-blue-600 hover:underline mb-2 block">← Back to Dashboard</Link>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Official Mock Tests</h1>
+                        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Official Mock Tests</h1>
                         <p className="text-slate-500 mt-2 font-medium">Full-length exam simulations designed by experts.</p>
                     </div>
                 </div>

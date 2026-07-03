@@ -39,12 +39,12 @@ export default function AdminDashboard() {
 
     return (
         <div className="space-y-8 p-4">
-            <div className="bg-slate-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden group">
+            <div className="bg-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
                     <TrendingUp className="w-64 h-64" />
                 </div>
                 <div className="relative z-10">
-                    <h1 className="text-4xl font-black tracking-tight mb-2">Platform Overview</h1>
+                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Platform Overview</h1>
                     <p className="text-slate-400 font-medium">Welcome back, <span className="text-white border-b-2 border-indigo-500">{user?.name}</span>. Here's how the students are performing today.</p>
                 </div>
             </div>
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((card, i) => {
                     const CardContent = (
-                        <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all group h-full">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all group h-full">
                             <div className={`w-16 h-16 ${card.color} rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform`}>
                                 {card.icon}
                             </div>
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl">
+                <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl">
                     <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
                         <TrendingUp className="w-6 h-6 text-indigo-600" />
                         Announcement Center
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
                         <Link href="/admin/announcements" className="block text-center text-sm font-bold text-indigo-600 hover:text-indigo-700 mt-2">Manage All →</Link>
                     </div>
                 </div>
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl">
+                <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xl">
                     <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
                         <Award className="w-6 h-6 text-amber-500" />
                         System Health

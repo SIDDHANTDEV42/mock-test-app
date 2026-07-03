@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "node node_modules/tsx/dist/cli.mjs watch src/index.ts",
     "build": "tsc",
+    "render-build": "prisma generate && tsc",
+    "migrate:deploy": "prisma migrate deploy",
+    "deploy:start": "prisma migrate deploy && node dist/index.js",
     "start": "node dist/index.js",
+    "seed": "node prisma/seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -35,5 +39,8 @@
     "@types/node": "^25.5.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }

@@ -4,7 +4,7 @@ import { authenticate, authorizeAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.post('/', authenticate, createTest);
+router.post('/', authenticate, authorizeAdmin, createTest);
 router.get('/', authenticate, getTests);
 router.get('/results/me', authenticate, getMyResults);
 router.get('/results/:id', authenticate, getResult);

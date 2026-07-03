@@ -1,5 +1,5 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -10,8 +10,21 @@ import userRoutes from './routes/user.routes';
 import reviewRoutes from './routes/review.routes';
 import announcementRoutes from './routes/announcement.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import { csrfProtection } from './middleware/csrf.middleware';
 
-dotenv.config(); // Loads .env from the current directory (server/) or as specified in environment
+const requiredEnv = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN'];
+const optionalEnv = ['GOOGLE_CLIENT_ID', 'NODE_ENV', 'COOKIE_SECURE', 'COOKIE_SAMESITE'];
+const missing = requiredEnv.filter(key => !process.env[key]);
+
+if (missing.length > 0) {
+    console.error('Missing required env vars:', missing);
+    process.exit(1);
+}
+
+if ((process.env.JWT_SECRET || '').length < 32) {
+    console.error('JWT_SECRET must be at least 32 characters long.');
+    process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,9 +35,10 @@ app.use(cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true
 }));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ limit: '1mb', extended: true }));
 app.use(cookieParser());
+app.use(csrfProtection);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -46,16 +60,6 @@ app.use(errorHandler);
 // Start Server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-
-    // Validate Env Vars
-    const requiredEnv = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN'];
-    const optionalEnv = ['GOOGLE_CLIENT_ID', 'NODE_ENV'];
-    const missing = requiredEnv.filter(key => !process.env[key]);
-    if (missing.length > 0) {
-        console.error('Missing required env vars:', missing);
-        process.exit(1);
-    } else {
-        console.log('Environment variables validated.');
-        console.log('Optional env vars check:', optionalEnv.map(key => `${key}: ${process.env[key] ? 'SET' : 'NOT SET'}`).join(', '));
-    }
+    console.log('Environment variables validated.');
+    console.log('Optional env vars check:', optionalEnv.map(key => `${key}: ${process.env[key] ? 'SET' : 'NOT SET'}`).join(', '));
 });

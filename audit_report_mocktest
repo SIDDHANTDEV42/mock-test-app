@@ -1,0 +1,386 @@
+# 🔍 EXAMPREP — Full Audit Report
+
+> Covers: Missing Features · Dead Buttons/Logic · Bugs · Security · UI Improvements · Landing & Login Page Review
+
+---
+
+## 🚨 CRITICAL BUGS (Production-Breaking)
+
+### 1. `setExamStarted` called before declaration — Ordering Bug
+**File:** [tests/[id]/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/dashboard/tests/%5Bid%5D/page.tsx#L63)
+
+```tsx
+// Line 63 — inside checkStatus() useCallback:
+setExamStarted(false); // state declared at line 146 AFTER this callback
+```
+`setExamStarted` is referenced inside `checkStatus` (declared via `useCallback` at line 56) but is only defined by `useState` at line 146. While React hooks execute in stable order, this is a **severe code smell** and any refactor will crash. Declare `examStarted` state at the TOP of the component, before `checkStatus`.
+
+---
+
+### 2. Password Reset — Emails Are NEVER Sent
+**File:** [auth.controller.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/controllers/auth.controller.ts#L200)
+
+```ts
+const resetLink = `...?token=${resetToken}`;
+logger.info(`Password reset link generated: ${resetLink}`);
+return res.status(200).json({ message: 'Password reset link generated. Check server logs.' });
+```
+**No email is sent anywhere.** The user gets a success message but receives nothing. There is no nodemailer, SendGrid, or any email transport configured.
+
+---
+
+### 3. Forgot Password Leaks Whether an Email is Registered
+**File:** [auth.controller.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/controllers/auth.controller.ts#L190)
+
+```ts
+if (!user) return res.status(404).json({ error: 'User not found' });
+```
+Returns a `404` confirming the email does NOT exist — **account enumeration vulnerability**. Always return `200 OK` regardless of whether the user exists.
+
+---
+
+### 4. Duplicate Test Submission Race Condition
+**File:** [tests/[id]/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/dashboard/tests/%5Bid%5D/page.tsx#L92)
+
+The guard `if (isSubmitting) return` is not atomic. The timer `useEffect` calls `submitTest()` when `timeLeft <= 0`, and the user can also click "Submit Test" simultaneously. Both calls can pass the guard before either sets `isSubmitting = true`, creating **duplicate result records**.
+
+---
+
+### 5. `POST /tests` — ANY Student Can Create Official Tests
+**File:** [test.routes.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/routes/test.routes.ts#L7)
+
+```ts
+router.post('/', authenticate, createTest); // ← Missing authorizeAdmin!
+```
+Any logged-in student can hit this endpoint and create official mock tests. **Critical privilege escalation.**
+
+---
+
+### 6. `POST /questions/bulk` — ANY Student Can Bulk-Upload Questions
+**File:** [question.routes.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/routes/question.routes.ts#L9)
+
+```ts
+router.post('/bulk', authenticate, bulkCreateQuestions); // ← Missing isAdmin
+```
+Any student can flood the question bank with thousands of fake questions.
+
+---
+
+### 7. `POST /questions` — ANY Student Can Add Questions
+**File:** [question.routes.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/routes/question.routes.ts#L7)
+
+```ts
+router.post('/', authenticate, createQuestion); // ← Missing isAdmin
+```
+Same issue as above.
+
+---
+
+### 8. Score Calculation is Entirely Client-Side
+**File:** [tests/[id]/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/dashboard/tests/%5Bid%5D/page.tsx#L97)
+
+```tsx
+let score = 0;
+test.questions.forEach((q: any, i: number) => {
+    if (answers[i] === q.correctAnswer) { score += qPos; }
+});
+// Then the computed score is sent to the server
+```
+**Every `correctAnswer` is sent to the browser.** A student opens DevTools, reads all answers, manipulates the `score` variable, and submits any score they want. **Scoring must be done server-side.**
+
+---
+
+## 🔐 SECURITY VULNERABILITIES
+
+### S1. JSON Body Limit = 50MB — DoS Risk
+**File:** [index.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/index.ts#L25)
+
+```ts
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+```
+Any endpoint accepts 50MB payloads, enabling easy memory exhaustion attacks. Reduce to `1mb` globally; use a specific limit only on the bulk upload route.
+
+---
+
+### S2. Dev-Mode Google Auth Backdoor
+**File:** [auth.controller.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/controllers/auth.controller.ts#L123)
+
+```ts
+if (process.env.NODE_ENV === 'development' && credential.startsWith('dev-mock-google-')) {
+    // login/create user with ANY email, zero validation
+}
+```
+If `NODE_ENV` is not explicitly set to `'production'`, this backdoor is active in deployed environments. Anyone can authenticate as any email address.
+
+---
+
+### S3. In-Memory Rate Limiter Has Multiple Weaknesses
+**File:** [rateLimit.middleware.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/middleware/rateLimit.middleware.ts)
+
+- Resets on every server restart — brute-force restarts bypass it
+- Does not work with multiple server instances (no shared Redis store)
+- Old IP entries are **never cleaned up** — slow memory leak
+- 100 requests / 15 min is very permissive for auth endpoints
+
+Replace with `express-rate-limit` + Redis store.
+
+---
+
+### S4. No CSRF Protection
+Cookie-based auth with `httpOnly: true` is used, but no CSRF tokens are validated. Malicious third-party sites can trigger state-changing API calls (logout, submit result) from authenticated sessions.
+
+---
+
+### S5. Biased Random Shuffle in Custom Tests
+**File:** [test.controller.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/controllers/test.controller.ts#L218)
+
+```ts
+finalQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, questionCount);
+```
+`Array.sort` with a random comparator produces a **statistically biased shuffle** — certain question orderings appear far more often than others. Use the Fisher-Yates algorithm.
+
+---
+
+### S6. New Password Not Validated on Reset
+**File:** [auth.controller.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/controllers/auth.controller.ts#L222)
+
+```ts
+const hashedPassword = await bcrypt.hash(newPassword, 10); // no length check
+```
+A user can reset to a 1-character password. Add `min(8)` validation via Zod or a manual check.
+
+---
+
+### S7. Debug Scripts in the Server Directory
+Files in `/server/`: `debug_delete.js`, `debug_tests.js`, `inspect_tests.js`, `inspect_tests_v2.js`, `SIDD.PY`, `practice.cpp`
+
+These expose database logic and should not live in the server root. The `.py` and `.cpp` files are entirely misplaced.
+
+---
+
+## 💀 DEAD BUTTONS & DEAD LOGIC
+
+### D1. "View Demo Tests" — Goes to Login, Not Demos
+**File:** [page.tsx (landing)](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/page.tsx#L53)
+
+```tsx
+<Link href="/auth/login">
+    <Button variant="outline">View Demo Tests</Button>
+</Link>
+```
+Clicking "View Demo Tests" takes users to the Login page. Rename to "Sign In" or build a real demo page.
+
+---
+
+### D2. Footer Links Are All Dead (`href="#"`)
+**File:** [page.tsx (landing)](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/page.tsx#L128)
+
+```tsx
+<Link href="#">Privacy Policy</Link>
+<Link href="#">Terms of Service</Link>
+<Link href="#">Contact Us</Link>
+```
+All three go nowhere. Either create the pages or remove the links.
+
+---
+
+### D3. Dashboard "PYQ Archive" — Broken Route (404)
+**File:** [dashboard/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/dashboard/page.tsx#L134)
+
+```tsx
+<Link href="/dashboard/pyq">PYQ Archive</Link>
+```
+The actual directory is `/dashboard/pyqs/` (plural). This link 404s.
+
+---
+
+### D4. Admin "System Health" Panel — Entirely Fake
+**File:** [admin/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/admin/page.tsx#L102)
+
+```tsx
+<span>Database Status</span> <span>Operational</span>  {/* hardcoded */}
+<span>Mail Server</span>     <span>Operational</span>  {/* hardcoded */}
+<span>Storage</span>         <span>92% Free</span>     {/* hardcoded */}
+```
+All three lines are hardcoded. No real health check is made. Gives admins false confidence.
+
+---
+
+### D5. Results Page Uses `window.location.href` Instead of Router
+**File:** [dashboard/results/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/dashboard/results/page.tsx#L46)
+
+```tsx
+onClick={() => window.location.href = `/dashboard/results/${res.id}`}
+```
+Forces a full page reload. Should use `router.push()`.
+
+---
+
+### D6. Chapter Loading Always Fails for Students — 403 Forbidden
+**File:** [question.routes.ts](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/server/src/routes/question.routes.ts#L11)
+
+```ts
+router.get('/chapters', authenticate, isAdmin, getChapters); // ← isAdmin blocks students
+```
+The Custom Exam page calls `/questions/chapters` for students, but the endpoint requires admin role. **Chapters never load for any student**, making the chapter filter in custom exams completely dead.
+
+---
+
+### D7. `dashboard/tests/page.tsx` — Orphaned Page
+**File:** [dashboard/tests/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/dashboard/tests/page.tsx)
+
+A `/dashboard/tests` listing page exists but is not linked from anywhere in the dashboard navigation. It's a dead page.
+
+---
+
+### D8. Review Submission Uses Native `alert()`
+**File:** [tests/[id]/page.tsx](file:///c:/Users/siddh/OneDrive/Desktop/mock%20app/client/src/app/dashboard/tests/%5Bid%5D/page.tsx#L82)
+
+```tsx
+alert("Thank you for your review!");
+```
+Blocking native browser `alert`. Replace with an inline success message or toast notification.
+
+---
+
+## 🏗️ MISSING FEATURES
+
+| # | Feature | Impact |
+|---|---------|--------|
+| M1 | **Email sending for password reset** | Users cannot reset passwords in production |
+| M2 | **Server-side score calculation** | Students can freely cheat |
+| M3 | **"Remember Me" on login** | Poor UX — users re-login constantly |
+| M4 | **Profile settings page** | No way to change name, password, or stream after registration |
+| M5 | **Loading skeletons / error states** | Pages flash "0" or blank while fetching data |
+| M6 | **Search/Filter on Mock Test list** | No way to find specific tests in a large list |
+| M7 | **Pagination on Admin tables** | Loads all results/questions at once — will crash with large data |
+| M8 | **"Mark for Review" in test palette** | Standard JEE feature explicitly mentioned in instructions but never implemented |
+| M9 | **`beforeunload` warning during active test** | Accidental tab close silently loses all answers |
+| M10 | **Stream selection for Google-registered users** | Google sign-up creates users with no stream — breaks custom exam filters |
+| M11 | **Admin edit functionality** | Admin can only create and delete — no way to edit existing tests or questions |
+| M12 | **Consistent dark/light theme** | Auth pages are dark, dashboard is light — jarring UX |
+
+---
+
+## 🎨 UI/UX IMPROVEMENTS
+
+### U1. Landing Page (`/`) — Issues
+
+| Issue | Detail |
+|-------|--------|
+| **Stats are fabricated** | "50k+ Students", "1.2M+ Questions", "98.2% Success" are fake — destroys credibility |
+| **`md:row` typo in footer** | `flex-col md:row` is invalid — should be `md:flex-row` |
+| **`animate-gradient` not defined** | Hero h1 uses this class but no CSS keyframe exists for it |
+| **No "How It Works" section** | Missing a step-by-step explanation section |
+| **No testimonials/social proof** | Nothing to convince a new visitor to sign up |
+| **No mobile hamburger menu** | Nav on mobile only shows 2 buttons; no additional navigation |
+| **Feature cards have no CTA** | Cards describe features but have no link or action button |
+| **SEO title is "Mock Test App"** | Layout metadata doesn't match the "EXAMPREP" brand |
+
+### U2. Login Page — Issues
+
+| Issue | Detail |
+|-------|--------|
+| **No "Remember Me" option** | Cookie expires silently after 7 days |
+| **Google OAuth button is narrow** | `width="100"` is pixel-based, appears pinched in wider containers |
+| **HTML error messages if server is down** | Nginx 502 errors return HTML, displayed as raw text in the error box |
+| **Left panel absent on tablets** | Hidden at `lg` breakpoint — iPad users see no branding |
+| **Left panel stats are hardcoded** | Same fake numbers as landing page |
+
+### U3. Register Page — Issues
+
+| Issue | Detail |
+|-------|--------|
+| **"Create Access Sequence"** | Confusing jargon — should be "Create Password" |
+| **"Authorize Operative" button** | Should be "Create Account" or "Register" |
+| **"Already established?"** | Should be "Already have an account?" |
+| **"Access Portal" link** | Should be "Sign In" |
+| **No confirm password field** | Typo in password = locked out with no recourse |
+| **No password strength indicator** | No visual feedback for password quality |
+| **Unstyled `<select>` dropdown** | Native select doesn't match the glassmorphism card design |
+
+### U4. Dashboard — Issues
+
+| Issue | Detail |
+|-------|--------|
+| **Theme whiplash** | Dark auth → light dashboard is a jarring transition |
+| **Stats show "0" while loading** | No skeleton loader — looks broken |
+| **Blue "M" logo instead of GraduationCap** | Inconsistent with rest of app branding |
+| **Score bar can overflow 100%** | `width: (averageScore || 0) * 10` overflows if score > 10 |
+
+### U5. Admin Panel — Issues
+
+| Issue | Detail |
+|-------|--------|
+| **No active nav link highlight** | No visual cue of the current admin page |
+| **"Loading Access..." text** | Looks broken — should be a spinner or skeleton |
+| **Sidebar brand inconsistency** | "Admin Portal" in italic with no logo |
+
+---
+
+## 🔬 LANDING PAGE — Deep Review
+
+**Verdict:** Good visual foundation, but has real problems that will hurt first impressions and credibility.
+
+1. **Fake statistics** — "50k+ Students", "1.2M+ Questions", "98.2% Success Rate" are completely fabricated for a new app. Replace with honest metrics or aspirational framing ("Built for JEE Aspirants").
+
+2. **`md:row` CSS bug** — Line 122: `flex-col md:row` is not valid Tailwind. The footer won't stack correctly on medium screens. Fix to `md:flex-row`.
+
+3. **`animate-gradient` missing** — The hero headline's gradient animation (`animate-gradient`) has no `@keyframes` definition in `globals.css`. The gradient renders statically instead of animated.
+
+4. **Missing content sections:**
+   - "How It Works" steps
+   - Testimonials / student quotes
+   - Subject & exam coverage (JEE vs CET vs NEET)
+   - "Free to use" or pricing callout
+
+5. **SEO** — `layout.tsx` sets `title: "Mock Test App"` — not branded. Should be "EXAMPREP – JEE, MHT-CET & NEET Mock Tests".
+
+---
+
+## 🔑 LOGIN PAGE — Deep Review
+
+**Verdict:** Visually premium and well-structured. Issues are mostly functional.
+
+1. **Tablet breakpoint** — The left branding panel is `hidden lg:flex`, so iPad users (768–1023px) see only the form panel with zero brand context.
+
+2. **Google OAuth button sizing** — `width="100"` passed to `<GoogleLogin>` is a pixel value. The container is wider, making the button appear narrow and un-centered.
+
+3. **HTML error fallback** — If the API server is down and nginx returns an HTML error page, `err.response?.data?.error` will contain an HTML string shown raw in the error box. Add `typeof errorMsg === 'string' && errorMsg.startsWith('<') ? 'Server error. Please try again.' : errorMsg`.
+
+4. **Google login loading state** — The `isLoading` state is only managed for the email/password form. If Google login fails, nothing visually resets. Add explicit loading management for the Google flow.
+
+5. **No rate limit feedback** — If the user hits the rate limiter (429), the error just says "Login failed" with no guidance on waiting.
+
+---
+
+## 📋 PRIORITY ACTION PLAN
+
+### 🔴 Pre-Launch Blockers (Do Immediately)
+1. Add `authorizeAdmin` to `POST /tests`, `POST /questions`, `POST /questions/bulk`
+2. Remove `isAdmin` guard from `GET /questions/chapters` (students need it)
+3. Move score calculation to server-side — never trust client score
+4. Fix state declaration order in test page (`examStarted` before `checkStatus`)
+5. Fix `md:row` → `md:flex-row` in landing page footer
+6. Rename "View Demo Tests" to "Sign In" or build a demo page
+7. Implement email sending for password reset
+8. Make forgot-password always return `200 OK` (prevent enumeration)
+
+### 🟡 Before Going Live
+1. Replace custom in-memory rate limiter with `express-rate-limit`
+2. Add `beforeunload` event listener during active test
+3. Add min-length validation to the reset-password endpoint
+4. Remove all debug scripts from the server directory
+5. Fix biased shuffle → Fisher-Yates algorithm
+6. Fix `window.location.href` → `router.push` in results page
+7. Fix `animate-gradient` keyframe or remove the class
+
+### 🟢 Quality of Life Improvements
+1. Add skeleton loaders to all data-fetching pages
+2. Fix register page copy: "Authorize Operative" → "Create Account", etc.
+3. Add "Mark for Review" (yellow state) to exam question palette
+4. Replace fake "System Health" panel with real health checks
+5. Add confirm password field + password strength indicator to register
+6. Make sidebar nav highlight the active admin page
+7. Style the `<select>` dropdown on register to match the design

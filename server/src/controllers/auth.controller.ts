@@ -10,10 +10,39 @@ import { logger } from '../lib/logger';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const hashResetToken = (token: string) => crypto.createHash('sha256').update(token).digest('hex');
+
+const isDatabaseSetupError = (error: unknown) => {
+    const code = typeof error === 'object' && error !== null && 'code' in error ? String((error as any).code) : '';
+    const message = error instanceof Error ? error.message : String(error || '');
+
+    return (
+        code.startsWith('P') ||
+        message.includes('DATABASE_URL') ||
+        message.includes('database') ||
+        message.includes('Database') ||
+        message.includes('connect') ||
+        message.includes('table')
+    );
+};
+
+const databaseSetupResponse = (res: Response) => res.status(503).json({
+    error: 'Signup is temporarily unavailable because the database is not connected. Set a PostgreSQL DATABASE_URL, run migrations, and try again.',
+});
+
+const cookieSecure = () => {
+    if (process.env.COOKIE_SECURE) {
+        return process.env.COOKIE_SECURE === 'true';
+    }
+
+    const origin = process.env.CORS_ORIGIN || '';
+    return process.env.NODE_ENV === 'production' && origin.startsWith('https://');
+};
+
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
+    secure: cookieSecure(),
+    sameSite: (process.env.COOKIE_SAMESITE as 'strict' | 'lax' | 'none' | undefined) || 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
@@ -55,6 +84,9 @@ export const register = async (req: Request, res: Response, next: any) => {
         });
     } catch (error) {
         logger.error('Register Error', error);
+        if (isDatabaseSetupError(error)) {
+            return databaseSetupResponse(res);
+        }
         next(error);
     }
 };
@@ -119,9 +151,15 @@ export const getMe = async (req: AuthRequest, res: Response, next: any) => {
 export const googleLogin = async (req: Request, res: Response, next: any) => {
     try {
         const { credential } = req.body;
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        if (!clientId || clientId === 'YOUR_GOOGLE_CLIENT_ID_HERE') {
+            logger.warn('Google authentication requested but server GOOGLE_CLIENT_ID is not configured');
+            return res.status(501).json({ error: 'Google login is not configured on this server.' });
+        }
+
         const ticket = await googleClient.verifyIdToken({
             idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID,
+            audience: clientId,
         });
         const payload = ticket.getPayload();
         if (!payload || !payload.email) return res.status(400).json({ error: 'Invalid Google Token' });
@@ -156,22 +194,30 @@ export const forgotPassword = async (req: Request, res: Response, next: any) => 
     try {
         const { email } = req.body;
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        const demoMessage = 'Portfolio demo notice: no real email is sent from this app right now. If this account exists, a reset link is generated for local/demo use.';
+        if (!user) return res.status(200).json({ message: demoMessage });
 
         const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenHash = hashResetToken(resetToken);
         const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
 
         await prisma.user.update({
             where: { email },
-            data: { resetToken, resetTokenExpiry },
+            data: { resetToken: resetTokenHash, resetTokenExpiry },
         });
 
         const resetLink = `${process.env.CORS_ORIGIN || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
-        logger.info(`Password reset link generated: ${resetLink}`);
+        logger.info('Password reset link generated');
 
-        return res.status(200).json({ message: 'Password reset link generated. Check server logs.' });
+        return res.status(200).json({
+            message: demoMessage,
+            ...(process.env.NODE_ENV !== 'production' && { resetLink })
+        });
     } catch (error) {
         logger.error('Forgot password error', error);
+        if (isDatabaseSetupError(error)) {
+            return databaseSetupResponse(res);
+        }
         next(error);
     }
 };
@@ -179,14 +225,23 @@ export const forgotPassword = async (req: Request, res: Response, next: any) => 
 export const resetPassword = async (req: Request, res: Response, next: any) => {
     try {
         const { token, newPassword } = req.body;
+        if (!token || typeof token !== 'string') {
+            return res.status(400).json({ error: 'Invalid or expired token' });
+        }
+
+        const resetTokenHash = hashResetToken(token);
         const user = await prisma.user.findFirst({
             where: {
-                resetToken: token,
+                resetToken: resetTokenHash,
                 resetTokenExpiry: { gt: new Date() },
             },
         });
 
         if (!user) return res.status(400).json({ error: 'Invalid or expired token' });
+
+        if (!newPassword || newPassword.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+        }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await prisma.user.update({

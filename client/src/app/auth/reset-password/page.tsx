@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#121417] p-4">
             <div className="w-full max-w-md relative z-10">
-                <div className="backdrop-blur-2xl bg-white/[0.03] border border-white/10 p-8 md:p-10 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
+                <div className="backdrop-blur-2xl bg-white/[0.03] border border-white/10 p-5 sm:p-8 md:p-10 rounded-2xl sm:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
                     <Suspense fallback={<div className="text-white text-center">Loading...</div>}>
                         <ResetPasswordForm />
                     </Suspense>

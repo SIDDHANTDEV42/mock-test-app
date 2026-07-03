@@ -4,11 +4,11 @@ import { authenticate, isAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.post('/', authenticate, createQuestion);
+router.post('/', authenticate, isAdmin, createQuestion);
 router.get('/', authenticate, getQuestions);
-router.post('/bulk', authenticate, bulkCreateQuestions);
+router.post('/bulk', authenticate, isAdmin, bulkCreateQuestions);
 router.get('/stats', authenticate, getDashboardStats);
-router.get('/chapters', authenticate, isAdmin, getChapters);
+router.get('/chapters', authenticate, getChapters);
 router.get('/pyq', authenticate, getPYQs);
 router.get('/admin-results', authenticate, isAdmin, getAdminResults);
 router.delete('/', authenticate, isAdmin, deleteQuestions);

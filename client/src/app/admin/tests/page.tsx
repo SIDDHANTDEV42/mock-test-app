@@ -184,12 +184,12 @@ export default function ManageTests() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
+            <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center bg-white p-4 rounded-xl shadow-sm border">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 uppercase tracking-tight">Test Management</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 border-l-4 border-indigo-600 pl-4 uppercase tracking-tight">Test Management</h1>
                     <p className="text-slate-500 text-sm mt-1 pl-4">Create and organize student mock exams.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     {selectedIds.length > 0 && (
                         <Button variant="destructive" onClick={() => handleDelete(selectedIds)}>
                             Delete Selected ({selectedIds.length})
@@ -202,7 +202,7 @@ export default function ManageTests() {
             </div>
 
             {showForm && (
-                <form onSubmit={handleSubmit} className="p-6 bg-white rounded-xl shadow-sm border space-y-4">
+                <form onSubmit={handleSubmit} className="p-5 sm:p-6 bg-white rounded-xl shadow-sm border space-y-4">
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Test Title</label>
@@ -246,8 +246,8 @@ export default function ManageTests() {
                             </div>
                         </div>
 
-                        <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                             <div className="flex justify-between items-center">
+                        <div className="space-y-4 bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-100">
+                             <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                                  <label className="text-sm font-black text-slate-900 uppercase tracking-widest">Marking Scheme</label>
                                  <Button 
                                      type="button" 
@@ -288,7 +288,7 @@ export default function ManageTests() {
                                      ))}
                                  </div>
                              ) : (
-                                 <div className="grid grid-cols-2 gap-4">
+                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                      <div>
                                          <label className="block text-xs font-bold text-slate-500 mb-1">Correct Answer Points</label>
                                          <input type="number" className="w-full p-2.5 border rounded-xl font-bold" value={formData.correctPoints} onChange={e => setFormData({...formData, correctPoints: parseInt(e.target.value)})} />
@@ -301,7 +301,7 @@ export default function ManageTests() {
                              )}
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Start Time (Optional)</label>
                                 <input 
@@ -320,7 +320,7 @@ export default function ManageTests() {
                                     onChange={e => setFormData({...formData, endTime: e.target.value})}
                                 />
                             </div>
-                            <div className="flex items-center gap-4 pt-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-2 lg:pt-6">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input 
                                         type="checkbox" 
@@ -384,8 +384,8 @@ export default function ManageTests() {
                         )}
 
                         {creationMode === 'BULK' && (
-                            <div className="space-y-4 bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
-                                <div className="flex justify-between items-center mb-2">
+                            <div className="space-y-4 bg-indigo-50/50 p-5 sm:p-6 rounded-xl border border-indigo-100">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-2">
                                     <label className="block text-sm font-bold text-indigo-900">Upload Questions File</label>
                                     <select 
                                         className="text-xs font-bold p-1 rounded border border-indigo-200"
@@ -412,7 +412,7 @@ export default function ManageTests() {
                         )}
 
                         {creationMode === 'RANDOM' && (
-                            <div className="space-y-4 bg-purple-50/50 p-6 rounded-xl border border-purple-100">
+                            <div className="space-y-4 bg-purple-50/50 p-5 sm:p-6 rounded-xl border border-purple-100">
                                 <div>
                                     <label className="block text-sm font-bold text-purple-900 mb-2">Subject Filter (Optional)</label>
                                     <div className="flex flex-wrap gap-2">
@@ -459,7 +459,7 @@ export default function ManageTests() {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label className="block text-sm font-bold text-purple-900">Number of Questions to Pick</label>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                                         <input 
                                             type="number"
                                             className="w-32 p-2.5 border border-purple-200 rounded-lg text-center font-bold text-lg outline-none focus:border-purple-600"
@@ -491,16 +491,16 @@ export default function ManageTests() {
                     <div 
                         key={test.id} 
                         onClick={() => toggleSelect(test.id)}
-                        className={`group p-6 bg-white rounded-2xl border-2 transition-all flex justify-between items-center cursor-pointer ${selectedIds.includes(test.id) ? 'border-indigo-600 bg-indigo-50 shadow-indigo-100 shadow-xl' : 'border-slate-100 hover:border-indigo-200'}`}
+                        className={`group p-5 sm:p-6 bg-white rounded-2xl border-2 transition-all flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center cursor-pointer ${selectedIds.includes(test.id) ? 'border-indigo-600 bg-indigo-50 shadow-indigo-100 shadow-xl' : 'border-slate-100 hover:border-indigo-200'}`}
                     >
-                        <div className="flex gap-4 items-center">
+                        <div className="flex gap-4 items-center min-w-0 w-full">
                             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${selectedIds.includes(test.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 group-hover:border-indigo-400'}`}>
                                 {selectedIds.includes(test.id) && <div className="w-2 h-2 bg-white rounded-sm" />}
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-900">{test.title}</h3>
-                                <p className="text-slate-500 text-sm">{test.description}</p>
-                                <div className="mt-3 flex gap-4 text-xs font-bold items-center">
+                            <div className="min-w-0">
+                                <h3 className="text-xl font-bold text-slate-900 break-words">{test.title}</h3>
+                                <p className="text-slate-500 text-sm break-words">{test.description}</p>
+                                <div className="mt-3 flex flex-wrap gap-3 text-xs font-bold items-center">
                                     <span className={cn(
                                         "px-2.5 py-1 rounded-full uppercase tracking-widest border",
                                         test.type === 'PYQ' ? "bg-orange-50 text-orange-600 border-orange-100" : "bg-blue-50 text-blue-600 border-blue-100"
@@ -516,7 +516,7 @@ export default function ManageTests() {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex gap-2 items-center">
+                        <div className="flex flex-wrap gap-2 items-center w-full lg:w-auto">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -564,7 +564,7 @@ export default function ManageTests() {
                     </div>
                 ))}
                 {tests.length === 0 && !showForm && (
-                     <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-20 text-center">
+                     <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-10 sm:p-20 text-center">
                         <p className="text-slate-400 font-medium pb-2">No tests created yet.</p>
                         <Button variant="link" onClick={() => setShowForm(true)} className="text-indigo-600">Click here to design your first mock exam</Button>
                     </div>

@@ -23,6 +23,7 @@ export default function TakeTest() {
     const [timePerQuestion, setTimePerQuestion] = useState<Record<number, number>>({});
     const [confirmedInstructions, setConfirmedInstructions] = useState(false);
     const [serverTime, setServerTime] = useState(new Date());
+    const [examStarted, setExamStarted] = useState(false);
 
     useEffect(() => {
         setSeen(prev => new Set(prev).add(currentIdx));
@@ -94,43 +95,10 @@ export default function TakeTest() {
         setIsSubmitting(true);
         
         try {
-            let score = 0;
-            const pos = test.correctPoints ?? 4;
-            const neg = test.negativePoints ?? 1;
-            const customMarks = test.subjectMarks ? JSON.parse(test.subjectMarks) : null;
-            
-            const detailedStats: any = {};
-            const wrongQIds: string[] = [];
-
-            test.questions.forEach((q: any, i: number) => {
-                const sub = q.subject || "General";
-                
-                let qPos = pos;
-                let qNeg = neg;
-                if (customMarks && customMarks[sub]) {
-                    qPos = customMarks[sub].correct ?? pos;
-                    qNeg = customMarks[sub].negative ?? neg;
-                }
-
-                if (!detailedStats[sub]) detailedStats[sub] = { correct: 0, wrong: 0, total: 0 };
-                detailedStats[sub].total++;
-
-                if (answers[i] === q.correctAnswer) {
-                    score += qPos;
-                    detailedStats[sub].correct++;
-                } else if (answers[i] !== undefined) {
-                    score -= qNeg;
-                    detailedStats[sub].wrong++;
-                    wrongQIds.push(q.id);
-                }
-            });
-
             const resultRes = await api.post(`/tests/${id}/results`, {
-                score,
+                answers,
                 spentTime: Math.max(0, test.duration * 60 - timeLeft),
-                wrongQuestions: JSON.stringify(wrongQIds),
-                subjectStats: JSON.stringify(detailedStats),
-                timePerQuestion: JSON.stringify(timePerQuestion)
+                timePerQuestion: timePerQuestion
             });
 
             setResultId(resultRes.data.id);
@@ -143,7 +111,7 @@ export default function TakeTest() {
     }, [test, answers, id, timeLeft, router, isSubmitting]);
 
     // Track whether the exam is actively in progress (questions are being shown)
-    const [examStarted, setExamStarted] = useState(false);
+    // const [examStarted, setExamStarted] = useState(false); // Moved to top
 
     // When instructions are confirmed, mark exam as started only if timeLeft > 0
     useEffect(() => {
@@ -171,12 +139,12 @@ export default function TakeTest() {
         return () => clearInterval(timer);
     }, [timeLeft, examStarted, submitTest, currentIdx, isSubmitting]);
 
-    if (!test) return <div className="p-8 text-center text-xl">Loading test...</div>;
+    if (!test) return <div className="p-4 sm:p-8 text-center text-xl">Loading test...</div>;
     
     if (!test.questions || test.questions.length === 0) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="p-8 bg-white rounded-2xl shadow-sm border border-red-100 text-center space-y-4">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+                <div className="p-5 sm:p-8 bg-white rounded-2xl shadow-sm border border-red-100 text-center space-y-4">
                     <h2 className="text-2xl font-bold text-red-600">Empty Test</h2>
                     <p className="text-slate-500">This test has no questions assigned to it.</p>
                     <Button onClick={() => router.push('/dashboard')}>Return to Dashboard</Button>
@@ -197,7 +165,7 @@ export default function TakeTest() {
 
     if (isActuallyLocked) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-8 text-center">
+            <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-4 sm:p-8 text-center">
                 <div className="max-w-md space-y-6">
                     <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto border border-red-500/50">
                         <span className="text-4xl text-red-500">🔒</span>
@@ -218,24 +186,24 @@ export default function TakeTest() {
     if (!confirmedInstructions) {
         return (
             <div className="min-h-screen bg-slate-50 p-4 md:p-12 overflow-y-auto">
-                <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
-                    <div className="bg-slate-900 p-8 text-white relative">
+                <div className="max-w-4xl mx-auto bg-white rounded-2xl md:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+                    <div className="bg-slate-900 p-5 sm:p-8 text-white relative">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
                          <h1 className="text-3xl font-black uppercase tracking-tight">{test.title}</h1>
                          <p className="text-slate-400 mt-1 font-bold">PRE-EXAM INSTRUCTIONS & GUIDELINES</p>
                     </div>
 
-                    <div className="p-8 md:p-12 space-y-8">
+                    <div className="p-5 sm:p-8 md:p-12 space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div className="p-5 sm:p-6 bg-slate-50 rounded-2xl border border-slate-100">
                                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Duration</p>
                                 <p className="text-2xl font-black text-slate-900">{test.duration} Minutes</p>
                             </div>
-                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div className="p-5 sm:p-6 bg-slate-50 rounded-2xl border border-slate-100">
                                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Questions</p>
                                 <p className="text-2xl font-black text-slate-900">{test.questions.length} Objective Types</p>
                             </div>
-                            <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                            <div className="p-5 sm:p-6 bg-blue-50 rounded-2xl border border-blue-100">
                                 <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Marking Scheme</p>
                                 <p className="text-xl font-black text-blue-600">
                                     {test.subjectMarks 
@@ -262,10 +230,10 @@ export default function TakeTest() {
                             </ul>
                         </div>
 
-                        <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
                             {timeLeft > 0 ? (
                                 <>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-start sm:items-center gap-3">
                                         <input type="checkbox" id="agree" className="w-5 h-5 rounded border-2 border-slate-200 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
                                         <label htmlFor="agree" className="text-sm font-bold text-slate-500 cursor-pointer">I have read and understood the instructions.</label>
                                     </div>
@@ -277,7 +245,7 @@ export default function TakeTest() {
                                                 alert("Please agree to the instructions first.");
                                             }
                                         }}
-                                        className="h-14 px-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 transition-all hover:scale-[1.05]"
+                                        className="h-14 px-6 sm:px-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 transition-all hover:scale-[1.05]"
                                     >
                                         I AM READY TO BEGIN
                                     </Button>
@@ -299,10 +267,10 @@ export default function TakeTest() {
     }
 
     return (
-        <div className="flex h-screen bg-slate-50">
+        <div className="flex min-h-screen flex-col bg-slate-50 lg:h-screen lg:flex-row">
             {/* Main Question Area */}
-            <div className="flex-1 flex flex-col h-full bg-white shadow-xl min-w-0">
-                <header className="p-4 border-b flex justify-between items-center bg-slate-900 text-white">
+            <div className="flex-1 flex flex-col bg-white shadow-xl min-w-0 lg:h-full">
+                <header className="p-3 sm:p-4 border-b flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center bg-slate-900 text-white">
                     <div className="flex flex-col">
                         <h1 className="text-xl font-bold leading-tight">{test.title}</h1>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -310,12 +278,12 @@ export default function TakeTest() {
                             <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded font-black uppercase text-emerald-400 border border-emerald-500/30">{test.subjectMarks ? "Variable per Subject" : `+${test.correctPoints ?? 4} / -${test.negativePoints ?? 1} Marks`}</span>
                         </div>
                     </div>
-                    <div className="text-2xl font-mono font-bold text-red-400 bg-red-950/30 px-4 py-1 rounded border border-red-900/50 shadow-[inset_0_0_10px_rgba(239,68,68,0.2)]">
+                    <div className="self-start sm:self-auto text-xl sm:text-2xl font-mono font-bold text-red-400 bg-red-950/30 px-4 py-1 rounded border border-red-900/50 shadow-[inset_0_0_10px_rgba(239,68,68,0.2)]">
                         {formatTime(timeLeft)}
                     </div>
                 </header>
 
-                <main className="flex-1 p-8 overflow-y-auto">
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
                     <div className="max-w-3xl mx-auto space-y-8">
                         <div className="space-y-4">
                             <div className="flex gap-2">
@@ -328,7 +296,7 @@ export default function TakeTest() {
                                     </span>
                                 )}
                             </div>
-                            <h2 className="text-2xl font-semibold leading-relaxed text-slate-900">
+                            <h2 className="text-xl sm:text-2xl font-semibold leading-relaxed text-slate-900">
                                 {currentQuestion.text}
                             </h2>
                             {currentQuestion.imageUrl && (
@@ -369,7 +337,7 @@ export default function TakeTest() {
                     </div>
                 </main>
 
-                <footer className="p-4 border-t flex justify-between items-center bg-slate-50">
+                <footer className="p-3 sm:p-4 border-t flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center bg-slate-50">
                     <Button 
                         disabled={currentIdx === 0} 
                         onClick={() => setCurrentIdx(prev => prev - 1)}
@@ -377,7 +345,7 @@ export default function TakeTest() {
                     >
                         ← Previous
                     </Button>
-                    <div className="flex gap-4">
+                    <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:flex sm:gap-4">
                         <Button 
                             variant="destructive"
                             onClick={() => {
@@ -397,13 +365,13 @@ export default function TakeTest() {
             </div>
 
             {/* Sidebar Palette */}
-            <aside className="w-72 bg-slate-900 border-l border-slate-800 flex flex-col h-full text-slate-300 shrink-0">
+            <aside className="bg-slate-900 border-l border-slate-800 flex flex-col text-slate-300 shrink-0 lg:h-full lg:w-72">
                 <div className="p-4 border-b border-slate-800">
                     <h2 className="text-lg font-bold text-white tracking-wide">Question Palette</h2>
                     <div className="text-xs text-slate-400 mt-1">{test.questions.length} total questions · {test.questions.length - Object.keys(answers).length} remaining</div>
                 </div>
                 <div className="flex-1 p-4 overflow-y-auto">
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-4 gap-3">
                         {test.questions.map((_: any, idx: number) => {
                             const isAnswered = answers[idx] !== undefined;
                             const isSeen = seen.has(idx);
@@ -451,7 +419,7 @@ export default function TakeTest() {
             {/* Review Modal */}
             {showReview && (
                 <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-300">
                         <div className="text-center space-y-4">
                             <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle className="w-10 h-10" />
@@ -498,4 +466,3 @@ export default function TakeTest() {
         </div>
     );
 }
-

@@ -20,7 +20,6 @@ interface RegisterData {
 interface AuthContextType extends AuthState {
     login: (data: LoginData) => Promise<void>;
     register: (data: RegisterData) => Promise<void>;
-    googleLogin: (credential: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -58,12 +57,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push('/dashboard');
     };
 
-    const googleLogin = async (credential: string) => {
-        const res = await api.post('/auth/google', { credential });
-        setUser(res.data.user);
-        router.push('/dashboard');
-    };
-
     const logout = async () => {
         try {
             await api.post('/auth/logout');
@@ -76,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, googleLogin, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

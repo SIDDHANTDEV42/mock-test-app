@@ -5,9 +5,11 @@ import api from "@/lib/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function StudentResults() {
     const [results, setResults] = useState<any[]>([]);
+    const router = useRouter();
 
     useEffect(() => {
         fetchResults();
@@ -23,15 +25,15 @@ export default function StudentResults() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 academic-bg p-8">
+        <div className="min-h-screen bg-slate-50 academic-bg p-4 sm:p-6 lg:p-8">
             <div className="max-w-4xl mx-auto space-y-8">
                 <div>
                     <Link href="/dashboard" className="text-sm font-bold text-blue-600 hover:underline mb-2 block">← Back to Dashboard</Link>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Your Performance</h1>
+                    <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Your Performance</h1>
                     <p className="text-slate-500 mt-2 font-medium">Detailed breakdown of your mock test attempts.</p>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+                <div className="bg-white rounded-3xl shadow-xl overflow-x-auto border border-slate-100">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-900 text-white">
@@ -43,7 +45,7 @@ export default function StudentResults() {
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {results.map((res) => (
-                                <tr key={res.id} className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/dashboard/results/${res.id}`}>
+                                <tr key={res.id} className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => router.push(`/dashboard/results/${res.id}`)}>
                                     <td className="p-6">
                                         <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{res.test?.title || 'Deleted Test'}</p>
                                         <p className="text-xs text-slate-400 font-medium">Full Length Mock</p>
@@ -78,4 +80,3 @@ export default function StudentResults() {
         </div>
     );
 }
-

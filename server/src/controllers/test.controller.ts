@@ -4,6 +4,40 @@ import { createTestSchema, createCustomTestSchema, submitResultSchema } from '..
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../lib/logger';
 
+const parseOptions = (options: string) => {
+    try {
+        return JSON.parse(options);
+    } catch {
+        return [];
+    }
+};
+
+const parseSubjectMarks = (subjectMarks?: string | null) => {
+    if (!subjectMarks) return null;
+    try {
+        return JSON.parse(subjectMarks);
+    } catch {
+        return null;
+    }
+};
+
+const sanitizeQuestionForExam = (question: any, includeAnswer: boolean) => {
+    const { correctAnswer, ...safeQuestion } = question;
+    return {
+        ...(includeAnswer ? question : safeQuestion),
+        options: typeof question.options === 'string' ? parseOptions(question.options) : question.options
+    };
+};
+
+const isTestAvailable = (test: any) => {
+    const now = new Date();
+    if (test.isLocked) return false;
+    if (test.startTime && new Date(test.startTime) > now) return false;
+    if (test.endTime && new Date(test.endTime) <= now) return false;
+    if (!test.isAlwaysAvailable && !test.startTime && !test.endTime) return false;
+    return true;
+};
+
 export const createTest = async (req: Request, res: Response, next: any) => {
     try {
         const result = createTestSchema.safeParse(req.body);
@@ -40,7 +74,7 @@ export const createTest = async (req: Request, res: Response, next: any) => {
 
 export const getTest = async (req: Request, res: Response, next: any) => {
     try {
-        const id = req.params.id;
+        const id = req.params.id as string;
         if (!id) {
             throw new AppError('Test ID is required', 400);
         }
@@ -51,12 +85,10 @@ export const getTest = async (req: Request, res: Response, next: any) => {
 
         if (!test) return res.status(404).json({ error: 'Test not found' });
 
-        // Scheduling check
-        const now = new Date();
         const user = (req as any).user;
-        if (test.isLocked && test.startTime && new Date(test.startTime) > now && user?.role !== 'ADMIN') {
+        if (!isTestAvailable(test) && user?.role !== 'ADMIN') {
             return res.status(403).json({ 
-                error: 'Test is not yet available', 
+                error: 'Test is not currently available', 
                 startTime: test.startTime 
             });
         }
@@ -65,15 +97,7 @@ export const getTest = async (req: Request, res: Response, next: any) => {
 
         res.json({
             ...testWithQuestions,
-            questions: testWithQuestions.questions.map((q: any) => {
-                let options;
-                try { 
-                    options = typeof q.options === 'string' ? JSON.parse(q.options) : q.options; 
-                } catch { 
-                    options = []; 
-                }
-                return { ...q, options };
-            })
+            questions: testWithQuestions.questions.map((q: any) => sanitizeQuestionForExam(q, user?.role === 'ADMIN'))
         });
     } catch (error) {
         logger.error('Failed to fetch test', error);
@@ -87,13 +111,10 @@ export const getTests = async (req: Request, res: Response, next: any) => {
             where: { isCustom: false },
             include: { questions: true }
         });
+        const user = (req as any).user;
         res.json(tests.map((t: any) => ({
             ...t,
-            questions: t.questions.map((q: any) => {
-                let options;
-                try { options = JSON.parse(q.options); } catch { options = []; }
-                return { ...q, options };
-            })
+            questions: t.questions.map((q: any) => sanitizeQuestionForExam(q, user?.role === 'ADMIN'))
         })));
     } catch (error) {
         logger.error('Failed to fetch tests', error);
@@ -114,12 +135,53 @@ export const submitResult = async (req: Request, res: Response, next: any) => {
             throw new AppError(firstError, 400);
         }
 
-        const { score, spentTime, wrongQuestions, subjectStats, timePerQuestion } = validationResult.data;
+        const { answers, spentTime, timePerQuestion } = validationResult.data;
         const user = (req as any).user;
         if (!user?.id) {
             throw new AppError('User not authenticated', 401);
         }
         const userId = user.id;
+
+        const test = await prisma.test.findUnique({
+            where: { id: id as string },
+            include: { questions: true }
+        });
+
+        if (!test) {
+            throw new AppError('Test not found', 404);
+        }
+
+        if (!isTestAvailable(test) && user.role !== 'ADMIN') {
+            throw new AppError('Test is not currently accepting submissions', 403);
+        }
+
+        let score = 0;
+        const pos = test.correctPoints ?? 4;
+        const neg = test.negativePoints ?? 1;
+        const customMarks = parseSubjectMarks(test.subjectMarks);
+        const subjectStats: Record<string, { correct: number; wrong: number; total: number }> = {};
+        const wrongQuestions: string[] = [];
+
+        test.questions.forEach((q: any, index: number) => {
+            const subject = q.subject || 'General';
+            const selected = answers[String(index)];
+            const correctPoints = customMarks?.[subject]?.correct ?? pos;
+            const negativePoints = customMarks?.[subject]?.negative ?? neg;
+
+            if (!subjectStats[subject]) {
+                subjectStats[subject] = { correct: 0, wrong: 0, total: 0 };
+            }
+            subjectStats[subject].total++;
+
+            if (selected === q.correctAnswer) {
+                score += correctPoints;
+                subjectStats[subject].correct++;
+            } else if (selected !== undefined) {
+                score -= negativePoints;
+                subjectStats[subject].wrong++;
+                wrongQuestions.push(q.id);
+            }
+        });
 
         const result = await prisma.result.create({
             data: {
@@ -127,9 +189,9 @@ export const submitResult = async (req: Request, res: Response, next: any) => {
                 spentTime,
                 userId,
                 testId: id as string,
-                wrongQuestions: wrongQuestions ? (typeof wrongQuestions === 'string' ? wrongQuestions : JSON.stringify(wrongQuestions)) : null,
-                subjectStats: subjectStats ? (typeof subjectStats === 'string' ? subjectStats : JSON.stringify(subjectStats)) : null,
-                timePerQuestion: timePerQuestion ? (typeof timePerQuestion === 'string' ? timePerQuestion : JSON.stringify(timePerQuestion)) : null
+                wrongQuestions: JSON.stringify(wrongQuestions),
+                subjectStats: JSON.stringify(subjectStats),
+                timePerQuestion: timePerQuestion ? JSON.stringify(timePerQuestion) : null
             }
         });
         res.status(201).json(result);
@@ -175,6 +237,12 @@ export const getResult = async (req: Request, res: Response, next: any) => {
         if (!result) {
             throw new AppError('Result not found', 404);
         }
+
+        const user = (req as any).user;
+        if (result.userId !== user?.id && user?.role !== 'ADMIN') {
+            throw new AppError('Unauthorized to view this result', 403);
+        }
+
         res.json(result);
     } catch (error) {
         logger.error('Failed to fetch result detail', error);
@@ -333,4 +401,3 @@ export const endTest = async (req: Request, res: Response, next: any) => {
         next(error);
     }
 };
-

@@ -1,7 +1,54 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Testing & Coverage
+coverage/
+
+# Next.js
+.next/
+out/
+build/
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Build Output
+dist/
+
+# Environment Variables
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env.production
-.next/
-dist/
-build/
+*.env
+
+# (Keep example env files)
+!.env.example
+!.env.local.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Deployment
+.vercel/

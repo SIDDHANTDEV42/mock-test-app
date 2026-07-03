@@ -24,12 +24,12 @@ export default function StudentTests() {
         }
     };
 
-    if (isLoading) return <div className="p-8">Loading tests...</div>;
+    if (isLoading) return <div className="p-4 sm:p-6 lg:p-8">Loading tests...</div>;
 
     return (
-        <div className="p-8 space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Available Mock Tests</h1>
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+                <h1 className="text-2xl sm:text-3xl font-bold">Available Mock Tests</h1>
                 <Link href="/dashboard">
                     <Button variant="ghost">← Back to Home</Button>
                 </Link>
@@ -41,7 +41,7 @@ export default function StudentTests() {
                         <div>
                             <h3 className="text-xl font-bold mb-2">{test.title}</h3>
                             <p className="text-sm text-slate-500 mb-4 line-clamp-2">{test.description}</p>
-                            <div className="flex gap-4 text-xs font-semibold text-slate-400">
+                            <div className="flex flex-wrap gap-3 text-xs font-semibold text-slate-400">
                                 <span>⏱️ {test.duration} mins</span>
                                 <span>📚 {test.questions.length} Questions</span>
                             </div>

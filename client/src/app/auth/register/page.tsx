@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from 'next/link';
 import { BookOpen, GraduationCap, Trophy, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
-import { GoogleLogin } from '@react-oauth/google';
 
 export default function RegisterPage() {
-    const { register, googleLogin } = useAuth();
+    const { register } = useAuth();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -25,14 +24,18 @@ export default function RegisterPage() {
         try {
             await register({ name, email, password, stream });
         } catch (err: any) {
-            const errorMsg = err.response?.data?.error || err.response?.data?.message || err.message || "Registration failed.";
+            const status = err.response?.status;
+            const serverMessage = err.response?.data?.error || err.response?.data?.message;
+            const errorMsg = status === 503
+                ? `${serverMessage || "Signup is temporarily unavailable."} This is a setup issue, not a problem with your email.`
+                : serverMessage || err.message || "Registration failed.";
             setError(errorMsg);
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050510]">
+        <div className="relative flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto bg-[#050510] py-8">
             {/* Animated Mesh Background (Consistent with Login) */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute top-[-10%] right-[-10%] h-[60%] w-[60%] animate-pulse rounded-full bg-indigo-600/10 blur-[120px]" />
@@ -51,16 +54,16 @@ export default function RegisterPage() {
             </div>
 
             {/* Register Card */}
-            <div className="relative z-10 w-full max-w-xl p-6">
-                <div className="backdrop-blur-3xl bg-white/[0.02] border border-white/10 rounded-[3rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] overflow-hidden">
-                    <div className="p-10 md:p-14 space-y-8">
+            <div className="relative z-10 w-full max-w-xl p-4 sm:p-6">
+                <div className="backdrop-blur-3xl bg-white/[0.02] border border-white/10 rounded-2xl sm:rounded-[3rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] overflow-hidden">
+                    <div className="p-5 sm:p-10 md:p-14 space-y-8">
                         {/* Header */}
                         <div className="text-center space-y-4">
                             <div className="inline-flex items-center justify-center p-4 bg-indigo-600/20 rounded-2xl border border-indigo-500/30 mb-2 shadow-xl">
                                 <Sparkles className="w-8 h-8 text-indigo-400" />
                             </div>
                             <div className="space-y-2">
-                                <h1 className="text-4xl font-black text-white tracking-tight">Join the Elite</h1>
+                                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">Join the Elite</h1>
                                 <p className="text-slate-500 font-medium tracking-wide">Register to start your journey to the top.</p>
                             </div>
                         </div>
@@ -152,31 +155,6 @@ export default function RegisterPage() {
                                 )}
                             </Button>
 
-                            <div className="relative mt-8">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-white/10" />
-                                </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-[#0b0b14] px-4 text-slate-500 font-bold tracking-[0.2em]">Or authorize with</span>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 flex justify-center">
-                                <GoogleLogin 
-                                    onSuccess={(credentialResponse) => {
-                                        if (credentialResponse.credential) {
-                                            googleLogin(credentialResponse.credential).catch((err: any) => {
-                                                setError(err.response?.data?.error || "Google login failed.");
-                                            });
-                                        }
-                                    }}
-                                    onError={() => {
-                                        setError('Google login Failed');
-                                    }}
-                                    theme="filled_black"
-                                    shape="pill"
-                                />
-                            </div>
                         </form>
 
                         <div className="text-center pt-4">

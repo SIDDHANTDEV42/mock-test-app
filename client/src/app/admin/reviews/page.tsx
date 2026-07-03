@@ -24,18 +24,18 @@ export default function AdminReviews() {
     };
 
     return (
-        <div className="p-8 pb-32">
-            <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-8 text-white shadow-2xl relative">
+        <div className="p-4 sm:p-6 lg:p-8 pb-32">
+            <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-5 sm:p-8 text-white shadow-2xl relative">
                 <div className="relative z-10 text-center">
-                    <h1 className="text-3xl font-bold tracking-tight">Student Feedback & Reviews</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Student Feedback & Reviews</h1>
                     <p className="mt-2 text-slate-400 uppercase tracking-widest text-xs font-bold">Monitor platform sentiment and test quality</p>
                 </div>
             </div>
 
             {loading ? (
-                <div className="flex justify-center p-20 text-slate-400">Loading reviews...</div>
+                <div className="flex justify-center p-10 sm:p-20 text-slate-400">Loading reviews...</div>
             ) : reviews.length === 0 ? (
-                <div className="bg-white rounded-2xl p-20 text-center border-2 border-dashed border-slate-200 text-slate-400">
+                <div className="bg-white rounded-2xl p-10 sm:p-20 text-center border-2 border-dashed border-slate-200 text-slate-400">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p className="text-xl font-medium">No reviews found yet.</p>
                 </div>

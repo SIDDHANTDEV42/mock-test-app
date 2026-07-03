@@ -51,13 +51,13 @@ export default function AnnouncementManagement() {
     };
 
     return (
-        <div className="p-8 space-y-8 bg-slate-50 min-h-screen">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-8 bg-slate-50 min-h-screen">
             <div className="flex items-center gap-4 mb-8">
                 <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-lg">
                     <Megaphone className="w-8 h-8" />
                 </div>
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Announcement Center</h1>
+                    <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Announcement Center</h1>
                     <p className="text-slate-500 font-medium tracking-wide italic">Broadcast important updates to all students.</p>
                 </div>
             </div>
@@ -65,7 +65,7 @@ export default function AnnouncementManagement() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Creation Form */}
                 <div className="lg:col-span-1">
-                    <form onSubmit={handleCreate} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-6">
+                    <form onSubmit={handleCreate} className="bg-white p-5 sm:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-xl border border-slate-100 space-y-6">
                         <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
                              <Plus className="w-5 h-5 text-indigo-500" /> New Broadcast
                         </h2>
@@ -105,7 +105,7 @@ export default function AnnouncementManagement() {
                     {announcements.length > 0 ? (
                         <div className="space-y-4">
                             {announcements.map((ann) => (
-                                <div key={ann.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex justify-between items-start hover:shadow-md transition-all">
+                                <div key={ann.id} className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-100 shadow-sm flex gap-4 justify-between items-start hover:shadow-md transition-all">
                                     <div className="space-y-2">
                                         <h3 className="text-lg font-black text-slate-900">{ann.title}</h3>
                                         <p className="text-slate-600 font-medium text-sm leading-relaxed">{ann.content}</p>
@@ -123,7 +123,7 @@ export default function AnnouncementManagement() {
                             ))}
                         </div>
                     ) : (
-                        <div className="p-20 bg-slate-100/50 rounded-[3rem] border-2 border-dashed border-slate-200 text-center flex flex-col items-center">
+                        <div className="p-10 sm:p-20 bg-slate-100/50 rounded-3xl sm:rounded-[3rem] border-2 border-dashed border-slate-200 text-center flex flex-col items-center">
                              <Megaphone className="w-12 h-12 text-slate-200 mb-4" />
                              <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">No announcements posted yet.</p>
                         </div>

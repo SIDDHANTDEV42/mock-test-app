@@ -28,17 +28,17 @@ export default function AdminResults() {
 
     return (
         <div className="space-y-8 p-4 md:p-8">
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-end">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">STUDENT SUBMISSIONS</h1>
+                    <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">STUDENT SUBMISSIONS</h1>
                     <p className="text-slate-500 font-medium">Detailed tracking of all examination attempts.</p>
                 </div>
-                <div className="flex gap-4">
-                    <div className="relative group">
+                <div className="flex gap-4 w-full lg:w-auto">
+                    <div className="relative group w-full">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                         <input 
                             placeholder="Search by student or test..." 
-                            className="pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64 md:w-80 transition-all font-medium"
+                            className="pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none w-full lg:w-80 transition-all font-medium"
                         />
                     </div>
                 </div>
