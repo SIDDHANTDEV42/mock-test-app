@@ -32,6 +32,7 @@ const defaultAllowedOrigins = [
     'http://localhost:3000',
     'https://examprep-showcase.vercel.app',
 ];
+const vercelPreviewOriginPattern = /^https:\/\/examprep-showcase-[a-z0-9-]+\.vercel\.app$/;
 
 const allowedOrigins = () => {
     const origins = [
@@ -48,11 +49,15 @@ const allowedOrigins = () => {
     );
 };
 
+const isAllowedOrigin = (origin: string) => {
+    return allowedOrigins().has(origin) || vercelPreviewOriginPattern.test(origin);
+};
+
 // Middleware
 app.use(helmet());
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins().has(origin)) {
+        if (!origin || isAllowedOrigin(origin)) {
             return callback(null, true);
         }
 

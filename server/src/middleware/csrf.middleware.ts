@@ -5,6 +5,7 @@ const defaultAllowedOrigins = [
     'http://localhost:3000',
     'https://examprep-showcase.vercel.app',
 ];
+const vercelPreviewOriginPattern = /^https:\/\/examprep-showcase-[a-z0-9-]+\.vercel\.app$/;
 
 const allowedOrigins = () => {
     const origins = [
@@ -21,6 +22,10 @@ const allowedOrigins = () => {
     );
 };
 
+const isAllowedOrigin = (origin: string) => {
+    return allowedOrigins().has(origin) || vercelPreviewOriginPattern.test(origin);
+};
+
 export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
     if (!unsafeMethods.has(req.method)) {
         return next();
@@ -31,14 +36,14 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
     const allowed = allowedOrigins();
 
     if (origin) {
-        if (allowed.has(origin)) return next();
+        if (allowed.has(origin) || isAllowedOrigin(origin)) return next();
         return res.status(403).json({ error: 'Forbidden: invalid request origin' });
     }
 
     if (referer) {
         try {
             const refererOrigin = new URL(referer).origin;
-            if (allowed.has(refererOrigin)) return next();
+            if (allowed.has(refererOrigin) || isAllowedOrigin(refererOrigin)) return next();
         } catch {
             return res.status(403).json({ error: 'Forbidden: invalid request referer' });
         }
