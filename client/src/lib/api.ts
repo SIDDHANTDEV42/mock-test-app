@@ -6,11 +6,12 @@ const localApiUrl = 'http://localhost:5000/api';
 const defaultApiUrl =
     typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
         ? localApiUrl
-        : productionApiUrl;
+        : '/api';
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || defaultApiUrl,
+    baseURL: defaultApiUrl || process.env.NEXT_PUBLIC_API_URL || productionApiUrl,
     withCredentials: true, // Important for HttpOnly cookies
+    timeout: 20000,
     headers: {
         'Content-Type': 'application/json',
     },
