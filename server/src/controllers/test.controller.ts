@@ -155,6 +155,20 @@ export const submitResult = async (req: Request, res: Response, next: any) => {
             throw new AppError('Test is not currently accepting submissions', 403);
         }
 
+        if (!test.isCustom && user.role !== 'ADMIN') {
+            const existingResult = await prisma.result.findFirst({
+                where: { userId, testId: id as string },
+                orderBy: { completedAt: 'desc' },
+            });
+
+            if (existingResult) {
+                return res.status(200).json({
+                    ...existingResult,
+                    message: 'You have already submitted this test. Showing your existing result.',
+                });
+            }
+        }
+
         let score = 0;
         const pos = test.correctPoints ?? 4;
         const neg = test.negativePoints ?? 1;
@@ -186,7 +200,7 @@ export const submitResult = async (req: Request, res: Response, next: any) => {
         const result = await prisma.result.create({
             data: {
                 score,
-                spentTime,
+                spentTime: Math.min(spentTime, Math.max(test.duration * 60, 0)),
                 userId,
                 testId: id as string,
                 wrongQuestions: JSON.stringify(wrongQuestions),
@@ -284,6 +298,10 @@ export const createCustomTest = async (req: Request, res: Response, next: any) =
         let finalQuestions = questions;
         if (!priority || priority === 'RANDOM') {
             finalQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, questionCount);
+        }
+
+        if (finalQuestions.length < questionCount) {
+            throw new AppError(`Only ${finalQuestions.length} matching questions are available. Reduce the count or broaden your filters.`, 400);
         }
 
         const test = await prisma.test.create({

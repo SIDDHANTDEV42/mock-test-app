@@ -60,7 +60,7 @@ export default function MockTestsPage() {
                                 </Button>
                             ) : (
                                 <Link href={`/dashboard/tests/${test.id}`} className="w-full">
-                                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-xl">
+                                    <Button className="w-full bg-cyan-700 hover:bg-cyan-800 text-white font-bold h-12 rounded-xl">
                                         Start Mock Test
                                     </Button>
                                 </Link>

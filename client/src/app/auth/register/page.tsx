@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from 'next/link';
-import { BookOpen, GraduationCap, Trophy, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, GraduationCap, Sparkles } from "lucide-react";
 
 export default function RegisterPage() {
     const { register } = useAuth();
@@ -38,9 +38,9 @@ export default function RegisterPage() {
         <div className="relative flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto bg-[#050510] py-8">
             {/* Animated Mesh Background (Consistent with Login) */}
             <div className="absolute inset-0 z-0">
-                <div className="absolute top-[-10%] right-[-10%] h-[60%] w-[60%] animate-pulse rounded-full bg-indigo-600/10 blur-[120px]" />
+                <div className="absolute top-[-10%] right-[-10%] h-[60%] w-[60%] animate-pulse rounded-full bg-cyan-500/10 blur-[120px]" />
                 <div className="absolute bottom-[-10%] left-[-10%] h-[60%] w-[60%] animate-pulse rounded-full bg-blue-600/10 blur-[120px] [animation-delay:2s]" />
-                <div className="absolute top-1/2 left-1/2 h-[40%] w-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/5 blur-[100px]" />
+                <div className="absolute top-1/2 left-1/2 h-[40%] w-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300/5 blur-[100px]" />
             </div>
 
             {/* Floating Decorative Icons */}
@@ -49,7 +49,7 @@ export default function RegisterPage() {
                     <Sparkles className="w-12 h-12 text-amber-400" />
                 </div>
                 <div className="absolute bottom-[15%] left-[15%] animate-bounce [animation-duration:10s]">
-                    <GraduationCap className="w-14 h-14 text-indigo-400" />
+                    <GraduationCap className="w-14 h-14 text-cyan-300" />
                 </div>
             </div>
 
@@ -59,12 +59,12 @@ export default function RegisterPage() {
                     <div className="p-5 sm:p-10 md:p-14 space-y-8">
                         {/* Header */}
                         <div className="text-center space-y-4">
-                            <div className="inline-flex items-center justify-center p-4 bg-indigo-600/20 rounded-2xl border border-indigo-500/30 mb-2 shadow-xl">
-                                <Sparkles className="w-8 h-8 text-indigo-400" />
+                            <div className="inline-flex items-center justify-center p-4 bg-cyan-400/10 rounded-2xl border border-cyan-300/20 mb-2 shadow-xl">
+                                <Sparkles className="w-8 h-8 text-cyan-300" />
                             </div>
                             <div className="space-y-2">
-                                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">Join the Elite</h1>
-                                <p className="text-slate-500 font-medium tracking-wide">Register to start your journey to the top.</p>
+                                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">Create Your Account</h1>
+                                <p className="text-slate-500 font-medium tracking-wide">Sign up to explore the full ExamPrep demo workspace.</p>
                             </div>
                         </div>
 
@@ -82,7 +82,7 @@ export default function RegisterPage() {
                                     <Input
                                         type="text"
                                         placeholder="John Doe"
-                                        className="h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white placeholder:text-slate-700 focus:bg-white/[0.06] focus:border-indigo-500/50 focus:ring-8 focus:ring-indigo-500/5 transition-all font-bold px-6 shadow-inner"
+                                        className="h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white placeholder:text-slate-700 focus:bg-white/[0.06] focus:border-cyan-400/50 focus:ring-8 focus:ring-cyan-400/5 transition-all font-bold px-6 shadow-inner"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         required
@@ -93,7 +93,7 @@ export default function RegisterPage() {
                                     <Input
                                         type="email"
                                         placeholder="name@college.edu"
-                                        className="h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white placeholder:text-slate-700 focus:bg-white/[0.06] focus:border-indigo-500/50 focus:ring-8 focus:ring-indigo-500/5 transition-all font-bold px-6 shadow-inner"
+                                        className="h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white placeholder:text-slate-700 focus:bg-white/[0.06] focus:border-cyan-400/50 focus:ring-8 focus:ring-cyan-400/5 transition-all font-bold px-6 shadow-inner"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
@@ -103,13 +103,13 @@ export default function RegisterPage() {
 
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center ml-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Create Access Sequence</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Password</label>
                                 </div>
                                 <div className="relative group">
                                     <Input
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Min. 8 characters"
-                                        className="h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white placeholder:text-slate-700 focus:bg-white/[0.06] focus:border-indigo-500/50 focus:ring-8 focus:ring-indigo-500/5 transition-all font-bold px-8 pr-16 shadow-inner"
+                                        className="h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white placeholder:text-slate-700 focus:bg-white/[0.06] focus:border-cyan-400/50 focus:ring-8 focus:ring-cyan-400/5 transition-all font-bold px-8 pr-16 shadow-inner"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -117,7 +117,7 @@ export default function RegisterPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 hover:text-indigo-400 transition-colors p-2"
+                                        className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 hover:text-cyan-300 transition-colors p-2"
                                     >
                                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
@@ -125,9 +125,9 @@ export default function RegisterPage() {
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Academic Concentration</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Study Stream</label>
                                 <select
-                                    className="w-full h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white focus:bg-white/[0.06] focus:border-indigo-500/50 focus:ring-8 focus:ring-indigo-500/5 transition-all font-bold px-6 outline-none appearance-none cursor-pointer"
+                                    className="w-full h-14 rounded-[1.25rem] border-white/5 bg-white/[0.03] text-white focus:bg-white/[0.06] focus:border-cyan-400/50 focus:ring-8 focus:ring-cyan-400/5 transition-all font-bold px-6 outline-none appearance-none cursor-pointer"
                                     value={stream}
                                     onChange={(e) => setStream(e.target.value)}
                                     required
@@ -143,13 +143,13 @@ export default function RegisterPage() {
                             <Button 
                                 type="submit" 
                                 disabled={isLoading}
-                                className="w-full h-16 bg-white text-black hover:bg-slate-200 font-black text-lg rounded-2xl shadow-[0_20px_40px_-10px_rgba(255,255,255,0.15)] transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 group mt-4"
+                                className="w-full h-16 bg-cyan-400 text-slate-950 hover:bg-cyan-300 font-black text-lg rounded-2xl shadow-[0_20px_40px_-10px_rgba(34,211,238,0.35)] transition-all active:scale-95 flex items-center justify-center gap-3 group mt-4"
                             >
                                 {isLoading ? (
                                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-black/30 border-t-black" />
                                 ) : (
                                     <>
-                                        Authorize Operative 
+                                        Create Account
                                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}
@@ -159,9 +159,9 @@ export default function RegisterPage() {
 
                         <div className="text-center pt-4">
                             <p className="text-slate-500 font-bold text-sm">
-                                Already established?{" "}
-                                <Link href="/auth/login" className="text-white hover:text-indigo-400 transition-colors underline decoration-indigo-500/50 underline-offset-8">
-                                    Access Portal
+                                Already have an account?{" "}
+                                <Link href="/auth/login" className="text-white hover:text-cyan-300 transition-colors underline decoration-cyan-400/50 underline-offset-8">
+                                    Sign in
                                 </Link>
                             </p>
                         </div>

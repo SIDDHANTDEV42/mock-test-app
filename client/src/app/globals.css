@@ -74,17 +74,39 @@
     @apply bg-slate-50 text-slate-900;
   }
 
-  button, .btn {
-    @apply transition-all duration-300;
-  }
-
-  button:hover, .btn:hover {
-    @apply scale-105 shadow-[0_0_15px_rgba(59,130,246,0.5)];
-  }
-
   /* Academic Background Gradient */
   .academic-bg {
-    background: radial-gradient(circle at 10% 20%, rgba(216, 241, 230, 0.46) 0%, rgba(233, 226, 226, 0.28) 90.1%);
+    background:
+      radial-gradient(circle at 10% 12%, rgba(34, 211, 238, 0.10), transparent 30%),
+      linear-gradient(180deg, #f8fafc 0%, #eef5f8 100%);
+  }
+
+  .app-card {
+    @apply rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/60;
+  }
+
+  .app-card-dark {
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20;
+  }
+
+  .app-eyebrow {
+    @apply text-[11px] font-black uppercase tracking-[0.24em] text-cyan-700;
+  }
+
+  .app-muted {
+    @apply text-sm font-medium leading-6 text-slate-500;
+  }
+
+  .app-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2;
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 
   @keyframes gradient {

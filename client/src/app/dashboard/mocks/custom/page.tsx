@@ -79,7 +79,7 @@ export default function AdvancedCustomTest() {
         <div className="min-h-screen bg-slate-50 academic-bg p-4 sm:p-6 lg:p-8 flex items-center justify-center">
             <div className="max-w-2xl w-full space-y-8 bg-white p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-[2rem] shadow-2xl border border-slate-100">
                 <div className="text-center">
-                    <div className="inline-block p-4 bg-indigo-50 rounded-2xl text-indigo-600 mb-4">
+                    <div className="inline-block p-4 bg-cyan-50 rounded-2xl text-cyan-700 mb-4">
                         <span className="text-3xl font-bold">⚡</span>
                     </div>
                     <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Advanced Custom Exam</h1>
@@ -151,8 +151,8 @@ export default function AdvancedCustomTest() {
                                     className={cn(
                                         "px-4 sm:px-6 py-3 rounded-2xl font-bold transition-all border-2",
                                         formData.subjects.includes(subj)
-                                            ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100 scale-105"
-                                            : "bg-white text-slate-500 border-slate-100 hover:border-indigo-200"
+                                            ? "bg-cyan-700 text-white border-cyan-700 shadow-lg shadow-cyan-100 scale-105"
+                                            : "bg-white text-slate-500 border-slate-100 hover:border-cyan-200"
                                     )}
                                 >
                                     {subj}
@@ -225,7 +225,7 @@ export default function AdvancedCustomTest() {
                     <Button 
                         type="submit" 
                         disabled={loading}
-                        className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-2xl shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02] active:scale-95"
+                        className="w-full h-16 bg-cyan-700 hover:bg-cyan-800 text-white font-black text-xl rounded-2xl shadow-xl shadow-cyan-100 transition-all active:scale-95"
                     >
                         {loading ? "Generating..." : "Launch Custom Exam →"}
                     </Button>

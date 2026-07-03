@@ -1,178 +1,239 @@
-# Free Deployment Guide
+# Deployment Guide
 
-This guide is written for a first deployment. Follow it slowly, one box at a time.
+This guide explains how to deploy the project for free or low cost using:
 
-## What Goes Where
+- Vercel for the frontend
+- Render for the backend
+- Neon for PostgreSQL
 
-- Frontend: Vercel
-- Backend API: Render
-- Database: Neon Postgres
+The project is a full-stack app, so it must be deployed in three connected parts.
 
-Your local computer is only for building/testing. The published app needs a cloud database, so this repo now uses Prisma with PostgreSQL.
+## 1. Deployment Map
 
-## Demo Accounts
+```txt
+Visitor Browser
+  -> Vercel Frontend
+  -> Render Backend API
+  -> Neon PostgreSQL Database
+```
 
-After you seed the deployed database, the login page can use:
+Production URLs should look like this:
 
-- Admin: `demo.admin@siddhant.dev`
-- Student: `demo.student@siddhant.dev`
-- Password: `DemoPass123!`
+```txt
+Frontend:
+https://your-project.vercel.app
 
-## Step 1: Push The Code To GitHub
+Backend:
+https://your-render-service.onrender.com
 
-1. Make a GitHub account if you do not have one.
-2. Create a new repository on GitHub.
-3. Keep it private while testing.
-4. Push this whole project folder to that repository.
+Backend API:
+https://your-render-service.onrender.com/api
+```
 
-Do not upload `.env`, `.env.local`, database files, or secrets. They are already ignored by `.gitignore`.
+## 2. Before You Deploy
 
-## Step 2: Create The Free Database On Neon
+Make sure these files are not committed:
 
-1. Go to `https://neon.tech`.
-2. Sign up with GitHub.
-3. Create a new project.
-4. Choose the free plan.
-5. Copy the connection string.
-6. It should look like:
+```txt
+.env
+.env.local
+server/.env
+client/.env.local
+```
+
+Make sure the repo contains:
+
+```txt
+server/prisma/schema.prisma
+server/prisma/migrations/
+server/package.json
+client/package.json
+render.yaml
+```
+
+## 3. Create Neon Database
+
+1. Open Neon.
+2. Create a PostgreSQL project.
+3. Copy the pooled connection string.
+4. Keep it private.
+
+It should look similar to:
 
 ```env
 postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require
 ```
 
-Keep this safe. This is your `DATABASE_URL`.
+This value is your production `DATABASE_URL`.
 
-## Step 3: Deploy The Backend On Render
+## 4. Deploy Backend On Render
 
-1. Go to `https://render.com`.
-2. Sign up with GitHub.
-3. Click `New`.
-4. Choose `Web Service`.
-5. Connect your GitHub repo.
-6. If Render asks for a root directory, use:
+Create a new Render Web Service.
+
+Use these settings:
 
 ```txt
-server
-```
-
-7. Use these settings:
-
-```txt
-Name: examprep-showcase-api
+Root Directory: server
 Runtime: Node
 Build Command: npm install && npm run render-build
 Start Command: npm run deploy:start
-Plan: Free
 ```
 
-8. Add these environment variables in Render:
+Add these Render environment variables:
 
 ```env
-DATABASE_URL=your_neon_connection_string
-JWT_SECRET=make-this-at-least-32-characters-long-and-random
-CORS_ORIGIN=https://your-vercel-url.vercel.app
+DATABASE_URL=your_neon_database_url
+JWT_SECRET=make-this-long-random-and-at-least-32-characters
+CORS_ORIGIN=https://your-vercel-domain.vercel.app
+CORS_ALLOWED_ORIGINS=https://your-vercel-domain.vercel.app
 NODE_ENV=production
 COOKIE_SECURE=true
 COOKIE_SAMESITE=none
 ```
 
-At this moment you do not know the Vercel URL yet. Put a temporary value like:
+If you do not have the Vercel URL yet, temporarily set:
 
 ```env
 CORS_ORIGIN=https://example.vercel.app
+CORS_ALLOWED_ORIGINS=https://example.vercel.app
 ```
 
-You will replace it after Vercel deploys.
+After Vercel deploys, replace those with the real frontend URL and redeploy Render.
 
-9. Click deploy.
-10. When Render finishes, open:
+## 5. Verify Backend
+
+Open:
 
 ```txt
 https://your-render-service.onrender.com/health
 ```
 
-If it says `status: ok`, the backend is alive.
+Expected response:
 
-## Step 4: Seed The Backend Database
+```json
+{
+  "status": "ok",
+  "timestamp": "..."
+}
+```
 
-Render creates your tables automatically through:
+If this fails, check Render logs for:
 
-```txt
+- missing `DATABASE_URL`
+- missing or too-short `JWT_SECRET`
+- Prisma migration errors
+- TypeScript build errors
+
+## 6. Seed Production Database
+
+The start command runs migrations:
+
+```bash
 npm run deploy:start
 ```
 
-But the demo users/questions/tests are added by the seed script.
-
-In Render:
-
-1. Open your backend service.
-2. Open the `Shell` tab.
-3. Run:
+That does not seed demo content. To add demo accounts, questions, tests, PYQs, and announcements, run this from Render Shell:
 
 ```bash
 npm run seed
 ```
 
-If the shell is not available on your free plan, use Render's manual job/shell option if available. If that is unavailable, run the seed from your computer after setting `server/.env` to the Neon `DATABASE_URL`.
+If Render Shell is unavailable, run it locally against Neon:
 
-## Step 5: Deploy The Frontend On Vercel
-
-1. Go to `https://vercel.com`.
-2. Sign up with GitHub.
-3. Click `Add New Project`.
-4. Import this GitHub repo.
-5. Set the root directory to:
-
-```txt
-client
+```bash
+cd server
+npm install
 ```
 
-6. Add this environment variable:
+Temporarily put the Neon `DATABASE_URL` in `server/.env`, then run:
+
+```bash
+npm run seed
+```
+
+Do not commit `server/.env`.
+
+## 7. Deploy Frontend On Vercel
+
+Create a new Vercel project from the GitHub repo.
+
+Use these settings:
+
+```txt
+Root Directory: client
+Framework Preset: Next.js
+Build Command: npm run build
+Output Directory: .next
+```
+
+Add these Vercel environment variables:
 
 ```env
 NEXT_PUBLIC_API_URL=https://your-render-service.onrender.com/api
+NEXT_PUBLIC_SITE_URL=https://your-vercel-domain.vercel.app
 ```
 
-7. Click deploy.
+Deploy the frontend.
 
-When it finishes, Vercel gives you a URL like:
+## 8. Disable Vercel Deployment Protection
+
+For a public portfolio demo, visitors must be able to open the Vercel URL without logging into Vercel.
+
+In Vercel:
+
+1. Open the project.
+2. Go to Settings.
+3. Find Deployment Protection.
+4. Disable protection for the public production deployment.
+5. Redeploy or open the production URL again.
+
+If the app redirects to `vercel.com/login`, deployment protection is still enabled.
+
+## 9. Connect Frontend And Backend
+
+After Vercel gives you the final URL, update Render:
+
+```env
+CORS_ORIGIN=https://your-vercel-domain.vercel.app
+CORS_ALLOWED_ORIGINS=https://your-vercel-domain.vercel.app
+```
+
+Then redeploy Render.
+
+The value must match the browser origin exactly. Do not include a trailing slash.
+
+Correct:
 
 ```txt
 https://your-project.vercel.app
 ```
 
-## Step 6: Connect Frontend And Backend
+Wrong:
 
-Go back to Render.
-
-Change:
-
-```env
-CORS_ORIGIN=https://example.vercel.app
+```txt
+https://your-project.vercel.app/
 ```
 
-to your real Vercel URL:
+## 10. Demo Login Test
 
-```env
-CORS_ORIGIN=https://your-project.vercel.app
+Open the Vercel URL and test:
+
+```txt
+Student: demo.student@siddhant.dev / DemoPass123!
+Admin:   demo.admin@siddhant.dev / DemoPass123!
 ```
 
-Then redeploy the Render backend.
+Expected:
 
-## Step 7: Test It Like A Visitor
+- Student logs in and reaches `/dashboard`
+- Student can open tests, PYQs, results, and leaderboard
+- Student cannot open admin pages
+- Admin can open `/admin`
+- Logout returns to login
 
-1. Open your Vercel URL.
-2. Click demo login.
-3. Click `Fill Student`.
-4. Sign in.
-5. Open dashboard, tests, PYQ archive, and results.
-6. Log out.
-7. Click `Fill Admin`.
-8. Sign in and check admin pages.
+## 11. Common Errors
 
-## Common Problems
-
-### Login says network error
+### Login shows "Network Error"
 
 Check Vercel:
 
@@ -180,41 +241,74 @@ Check Vercel:
 NEXT_PUBLIC_API_URL=https://your-render-service.onrender.com/api
 ```
 
+Then redeploy Vercel. Public `NEXT_PUBLIC_*` values are baked into the frontend build.
+
+### Login returns CORS error
+
 Check Render:
 
 ```env
-CORS_ORIGIN=https://your-project.vercel.app
+CORS_ORIGIN=https://your-vercel-domain.vercel.app
+CORS_ALLOWED_ORIGINS=https://your-vercel-domain.vercel.app
 ```
 
-### Login works locally but not online
+Redeploy Render.
 
-Make sure Render has:
+### Login works in API test but not browser
+
+Check Render cookie settings:
 
 ```env
 COOKIE_SECURE=true
 COOKIE_SAMESITE=none
+NODE_ENV=production
+```
+
+### Frontend redirects to Vercel login
+
+Disable Vercel Deployment Protection for the public deployment.
+
+### Backend build fails on TypeScript types
+
+Make sure `typescript` and required `@types/*` packages are available in `server/package.json` dependencies for Render builds.
+
+### Backend build fails on moduleResolution node10
+
+`server/tsconfig.json` should use:
+
+```json
+{
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "node16"
+  }
+}
 ```
 
 ### Database is empty
 
-Run this in the Render shell:
+Run:
 
 ```bash
 npm run seed
 ```
 
-### Render backend sleeps
+### Render is slow after inactivity
 
-Free Render services may sleep when nobody uses them. The first request can be slow. This is normal on the free plan.
+This is normal on the free plan. The first request can be slow because the service wakes up.
 
-## Final Launch Checklist
+## 12. Final Launch Checklist
 
-- GitHub repo has no `.env` files.
-- Neon database is created.
-- Render backend `/health` returns `status: ok`.
-- Vercel frontend opens.
-- Vercel `NEXT_PUBLIC_API_URL` points to Render.
-- Render `CORS_ORIGIN` points to Vercel.
-- Demo student login works.
-- Demo admin login works.
-- No page is empty.
+- Backend `/health` returns `status: ok`
+- Vercel page opens without Vercel login
+- Vercel `NEXT_PUBLIC_API_URL` points to Render `/api`
+- Render `CORS_ORIGIN` points to the exact Vercel origin
+- Render has secure cookie settings
+- Neon database has seed data
+- Demo student login works
+- Demo admin login works
+- Student is blocked from admin API/pages
+- No page is empty
+- README links work
+- Privacy, Cookies, and Terms pages are visible
+- No secrets are committed

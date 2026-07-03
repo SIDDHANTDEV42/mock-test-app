@@ -245,6 +245,12 @@ export default function Home() {
                     <Link href={portfolioHref} className="text-cyan-300 hover:text-cyan-200">
                         Portfolio placeholder: siddhant.dev
                     </Link>
+                    <div className="flex flex-wrap gap-x-5 gap-y-2">
+                        <Link href="/legal/privacy" className="hover:text-cyan-200">Privacy</Link>
+                        <Link href="/legal/cookies" className="hover:text-cyan-200">Cookies</Link>
+                        <Link href="/legal/terms" className="hover:text-cyan-200">Terms & Copyright</Link>
+                    </div>
+                    <p>Copyright © 2026 Siddhant Gupta. All rights reserved.</p>
                 </div>
             </footer>
         </div>

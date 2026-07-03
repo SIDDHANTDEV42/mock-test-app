@@ -4,6 +4,22 @@ import { createQuestionSchema, bulkCreateQuestionsSchema } from '../schemas/ques
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../lib/logger';
 
+const parseOptions = (options: string) => {
+    try {
+        return JSON.parse(options);
+    } catch {
+        return [];
+    }
+};
+
+const formatQuestion = (question: any, includeAnswer: boolean) => {
+    const { correctAnswer, ...safeQuestion } = question;
+    return {
+        ...(includeAnswer ? question : safeQuestion),
+        options: parseOptions(question.options),
+    };
+};
+
 export const createQuestion = async (req: Request, res: Response, next: any) => {
     try {
         const result = createQuestionSchema.safeParse(req.body);
@@ -36,11 +52,9 @@ export const createQuestion = async (req: Request, res: Response, next: any) => 
 export const getQuestions = async (req: Request, res: Response, next: any) => {
     try {
         const questions = await prisma.question.findMany();
-        res.json(questions.map((q: any) => {
-            let options;
-            try { options = JSON.parse(q.options); } catch { options = []; }
-            return { ...q, options };
-        }));
+        const user = (req as any).user;
+        const includeAnswer = user?.role === 'ADMIN';
+        res.json(questions.map((q: any) => formatQuestion(q, includeAnswer)));
     } catch (error) {
         logger.error('Failed to fetch questions', error);
         next(error);
@@ -250,9 +264,7 @@ export const getPYQs = async (req: Request, res: Response, next: any) => {
             if (!hierarchy[sub][chap]) hierarchy[sub][chap] = {};
             if (!hierarchy[sub][chap][year]) hierarchy[sub][chap][year] = [];
             
-            let options;
-            try { options = JSON.parse(q.options); } catch { options = []; }
-            hierarchy[sub][chap][year].push({ ...q, options });
+            hierarchy[sub][chap][year].push(formatQuestion(q, true));
         });
         
         res.json(hierarchy);

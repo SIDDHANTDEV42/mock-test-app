@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
+import { AppError } from '../middleware/error.middleware';
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
@@ -22,6 +23,14 @@ export const getUsers = async (req: Request, res: Response) => {
 export const getUserStats = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const user = (req as any).user;
+        if (!user?.id) {
+            throw new AppError('User not authenticated', 401);
+        }
+        if (user.role !== 'ADMIN' && user.id !== id) {
+            throw new AppError('You can only view your own stats', 403);
+        }
+
         const results = await prisma.result.findMany({
             where: { userId: id as string },
             include: { test: true },
@@ -84,7 +93,10 @@ export const getUserStats = async (req: Request, res: Response) => {
             weakAreas: weakAreas.slice(0, 3), // Top 3 weakest
             avgTimePerQuestion // In seconds
         });
-    } catch (error) {
+    } catch (error: any) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: 'Failed to fetch user stats' });
     }
 };
