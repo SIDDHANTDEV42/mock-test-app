@@ -153,6 +153,9 @@ export default function LoginPage() {
                                     </div>
                                 ) : "Sign In"}
                             </Button>
+                            <p className="text-center text-[11px] font-semibold leading-relaxed text-slate-500">
+                                First login may take 30-60 seconds while the free demo server wakes up. After that, it becomes much faster.
+                            </p>
 
                             <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 space-y-3">
                                 <div>
